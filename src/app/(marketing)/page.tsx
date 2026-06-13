@@ -83,27 +83,32 @@ export default function HomePage() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-brand-50 to-white" />
-        <div className="container-px py-20 sm:py-28">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-brand-50/70 via-white to-white" />
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-brand-200 to-transparent"
+        />
+        <div className="container-px py-24 sm:py-32">
           <div className="mx-auto max-w-3xl text-center">
-            <span className="badge bg-brand-100 text-brand-700">
+            <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 ring-1 ring-inset ring-brand-200">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
               Managed task marketplace · self-hostable
             </span>
-            <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-6xl">
+            <h1 className="mt-6 text-balance text-4xl font-bold tracking-tight sm:text-6xl">
               Turn incoming requests into{" "}
               <span className="text-brand-600">delivered work</span>.
             </h1>
-            <p className="mt-6 text-lg text-gray-600">
+            <p className="mt-6 text-pretty text-lg leading-relaxed text-gray-600">
               TaskFlow collects task requests from your subscribers, routes them
               to the right people, tracks delivery against budget, runs quality
               control, and pays everyone — all on open infrastructure you fully
               control.
             </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/register" className="btn-primary px-6 py-3 text-base">
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+              <Link href="/register" className="btn-primary btn-lg">
                 Start free <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href="/docs" className="btn-secondary px-6 py-3 text-base">
+              <Link href="/docs" className="btn-secondary btn-lg">
                 Read the docs
               </Link>
             </div>
@@ -115,18 +120,21 @@ export default function HomePage() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="border-t border-gray-100 bg-white py-20">
+      <section id="how" className="border-t border-gray-100 bg-white py-20 sm:py-24">
         <div className="container-px">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold">How it works</h2>
-            <p className="mt-3 text-gray-600">
+            <h2 className="text-balance text-3xl font-bold">How it works</h2>
+            <p className="mt-3 text-pretty text-gray-600">
               One pipeline, four hand-offs — every step tracked and auditable.
             </p>
           </div>
           <div className="mt-12 grid gap-6 md:grid-cols-4">
             {steps.map((s, i) => (
-              <div key={s.title} className="card relative p-6">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-semibold text-white">
+              <div
+                key={s.title}
+                className="card relative p-6 transition-shadow hover:shadow-card-hover"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-semibold text-white shadow-sm">
                   {i + 1}
                 </div>
                 <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-brand-600">
@@ -141,19 +149,24 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="bg-gray-50 py-20">
+      <section id="features" className="bg-gray-50 py-20 sm:py-24">
         <div className="container-px">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold">Everything the operation needs</h2>
-            <p className="mt-3 text-gray-600">
+            <h2 className="text-balance text-3xl font-bold">
+              Everything the operation needs
+            </h2>
+            <p className="mt-3 text-pretty text-gray-600">
               From intake to payout, with governance for organisations and
               privacy for every uploaded file.
             </p>
           </div>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((f) => (
-              <div key={f.title} className="card p-6">
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
+              <div
+                key={f.title}
+                className="card p-6 transition-shadow hover:shadow-card-hover"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100 text-brand-700 ring-1 ring-inset ring-brand-200/70">
                   <f.icon className="h-5 w-5" />
                 </span>
                 <div className="mt-4 font-semibold">{f.title}</div>
@@ -165,10 +178,12 @@ export default function HomePage() {
       </section>
 
       {/* Roles / interfaces */}
-      <section className="bg-white py-20">
+      <section className="bg-white py-20 sm:py-24">
         <div className="container-px grid items-center gap-10 lg:grid-cols-2">
           <div>
-            <h2 className="text-3xl font-bold">Three interfaces, one platform</h2>
+            <h2 className="text-balance text-3xl font-bold">
+              Three interfaces, one platform
+            </h2>
             <p className="mt-4 text-gray-600">
               Each role gets a workspace built for the job — and entity members
               only ever see what their organisation permits.
@@ -214,10 +229,10 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-brand-600 py-16">
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-600 to-brand-800 py-16">
         <div className="container-px flex flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
           <div>
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-balance text-2xl font-bold text-white">
               Ready to run your task operation?
             </h2>
             <p className="mt-2 text-brand-100">
@@ -225,10 +240,16 @@ export default function HomePage() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Link href="/register" className="btn bg-white text-brand-700 hover:bg-brand-50 px-6 py-3 text-base">
+            <Link
+              href="/register"
+              className="btn btn-lg bg-white text-brand-700 shadow-sm hover:bg-brand-50"
+            >
               Get started
             </Link>
-            <Link href="/docs/self-hosting" className="btn border border-white/40 text-white hover:bg-brand-700 px-6 py-3 text-base">
+            <Link
+              href="/docs/self-hosting"
+              className="btn btn-lg border border-white/40 text-white hover:bg-white/10"
+            >
               Self-host
             </Link>
           </div>
