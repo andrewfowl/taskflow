@@ -34,6 +34,9 @@ const config: Config = {
         card: "0 1px 2px 0 rgb(16 24 40 / 0.04), 0 1px 3px 0 rgb(16 24 40 / 0.06)",
         "card-hover":
           "0 8px 24px -6px rgb(16 24 40 / 0.10), 0 2px 6px -2px rgb(16 24 40 / 0.06)",
+        // A saturated brand-coloured glow for decisive primary actions.
+        brand:
+          "0 12px 32px -10px rgb(79 70 229 / 0.45), 0 4px 12px -4px rgb(79 70 229 / 0.30)",
       },
     },
   },

@@ -86,26 +86,36 @@ export default function HomePage() {
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-brand-50/70 via-white to-white" />
         <div
           aria-hidden
-          className="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-brand-200 to-transparent"
+          className="absolute left-1/2 top-[-12%] -z-10 h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-brand-400/20 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-brand-300 to-transparent"
         />
         <div className="container-px py-24 sm:py-32">
           <div className="mx-auto max-w-3xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 ring-1 ring-inset ring-brand-200">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-brand-700 ring-1 ring-inset ring-brand-200 backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
               Managed task marketplace · self-hostable
             </span>
-            <h1 className="mt-6 text-balance text-4xl font-bold tracking-tight sm:text-6xl">
+            <h1 className="mt-6 text-balance text-5xl font-extrabold tracking-tight sm:text-7xl">
               Turn incoming requests into{" "}
-              <span className="text-brand-600">delivered work</span>.
+              <span className="bg-gradient-to-r from-brand-500 via-brand-600 to-brand-800 bg-clip-text text-transparent">
+                delivered work
+              </span>
+              .
             </h1>
-            <p className="mt-6 text-pretty text-lg leading-relaxed text-gray-600">
+            <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-gray-600 sm:text-xl">
               TaskFlow collects task requests from your subscribers, routes them
               to the right people, tracks delivery against budget, runs quality
               control, and pays everyone — all on open infrastructure you fully
               control.
             </p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/register" className="btn-primary btn-lg">
+              <Link
+                href="/register"
+                className="btn-primary btn-lg shadow-brand transition hover:-translate-y-0.5"
+              >
                 Start free <ArrowRight className="h-4 w-4" />
               </Link>
               <Link href="/docs" className="btn-secondary btn-lg">
@@ -123,7 +133,9 @@ export default function HomePage() {
       <section id="how" className="border-t border-gray-100 bg-white py-20 sm:py-24">
         <div className="container-px">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-balance text-3xl font-bold">How it works</h2>
+            <h2 className="text-balance text-3xl font-extrabold sm:text-4xl">
+              How it works
+            </h2>
             <p className="mt-3 text-pretty text-gray-600">
               One pipeline, four hand-offs — every step tracked and auditable.
             </p>
@@ -134,7 +146,7 @@ export default function HomePage() {
                 key={s.title}
                 className="card relative p-6 transition-shadow hover:shadow-card-hover"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-semibold text-white shadow-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-base font-bold text-white shadow-sm">
                   {i + 1}
                 </div>
                 <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-brand-600">
@@ -152,7 +164,7 @@ export default function HomePage() {
       <section id="features" className="bg-gray-50 py-20 sm:py-24">
         <div className="container-px">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-balance text-3xl font-bold">
+            <h2 className="text-balance text-3xl font-extrabold sm:text-4xl">
               Everything the operation needs
             </h2>
             <p className="mt-3 text-pretty text-gray-600">
@@ -166,7 +178,7 @@ export default function HomePage() {
                 key={f.title}
                 className="card p-6 transition-shadow hover:shadow-card-hover"
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100 text-brand-700 ring-1 ring-inset ring-brand-200/70">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-sm">
                   <f.icon className="h-5 w-5" />
                 </span>
                 <div className="mt-4 font-semibold">{f.title}</div>
@@ -181,7 +193,7 @@ export default function HomePage() {
       <section className="bg-white py-20 sm:py-24">
         <div className="container-px grid items-center gap-10 lg:grid-cols-2">
           <div>
-            <h2 className="text-balance text-3xl font-bold">
+            <h2 className="text-balance text-3xl font-extrabold sm:text-4xl">
               Three interfaces, one platform
             </h2>
             <p className="mt-4 text-gray-600">
@@ -229,13 +241,17 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-600 to-brand-800 py-16">
-        <div className="container-px flex flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
+      <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-brand-950 to-brand-900 py-20">
+        <div
+          aria-hidden
+          className="absolute right-0 top-0 h-72 w-72 translate-x-1/3 -translate-y-1/3 rounded-full bg-brand-500/30 blur-3xl"
+        />
+        <div className="container-px relative flex flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
           <div>
-            <h2 className="text-balance text-2xl font-bold text-white">
+            <h2 className="text-balance text-3xl font-extrabold text-white sm:text-4xl">
               Ready to run your task operation?
             </h2>
-            <p className="mt-2 text-brand-100">
+            <p className="mt-3 text-lg text-brand-200">
               Spin it up in minutes, or self-host with one command.
             </p>
           </div>

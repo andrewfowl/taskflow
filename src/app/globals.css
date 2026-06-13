@@ -26,7 +26,7 @@ body {
   h2,
   h3,
   h4 {
-    @apply font-semibold tracking-tight text-gray-900;
+    @apply font-bold tracking-tight text-gray-900;
   }
 }
 
