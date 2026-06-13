@@ -1,0 +1,785 @@
+// TaskFlow data model
+// ---------------------------------------------------------------------------
+// PostgreSQL + Prisma. Portable across Supabase, Neon, RDS, or a self-hosted
+// Postgres — no proprietary extensions are used, so there is no vendor lock-in.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────── Identity & tenancy ────────────────────────────
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String?
+  image          String?
+  hashedPassword String?
+  // Platform staff (dispatchers / ops) who run the marketplace.
+  isPlatformAdmin Boolean  @default(false)
+  emailVerified  DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Auth.js
+  accounts Account[]
+  sessions Session[]
+
+  // Org membership (a user may belong to zero or many entities)
+  memberships Membership[]
+
+  // Capability profiles
+  taskerProfile TaskerProfile?
+
+  // Requestor side
+  requestedTasks Task[] @relation("RequestedTasks")
+
+  // Tasker side
+  assignedTasks       Task[]           @relation("AssignedTasks")
+  assigneeAssignments Assignment[]     @relation("AssigneeAssignments")
+  madeAssignments     Assignment[]     @relation("AssignedByAssignments")
+  ownedTeams          Team[]           @relation("TeamOwner")
+  teamMemberships     TeamMembership[]
+  projectPlans        ProjectPlan[]
+  timeEntries         TimeEntry[]
+  deliverables        Deliverable[]
+  qcReviews           QcReview[]
+  methodologies       Methodology[]
+  methodologyEntries  MethodologyEntry[]
+  payouts             Payout[]
+
+  // Shared
+  uploadedFiles StoredFile[]
+  comments      Comment[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  ownedSubscription Subscription? @relation("UserSubscription")
+
+  @@index([email])
+}
+
+// An Entity is an organisation / company that pays for the platform and whose
+// members request work. Standalone users have no Entity (they get a personal
+// subscription instead).
+model Entity {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  billingEmail String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships  Membership[]
+  tasks        Task[]
+  subscription Subscription? @relation("EntitySubscription")
+}
+
+enum MembershipRole {
+  OWNER // full control + billing
+  ADMIN // manage members and all entity tasks
+  BILLING // billing only
+  MEMBER // can create/track their own tasks within the entity
+}
+
+model Membership {
+  id        String         @id @default(cuid())
+  userId    String
+  entityId  String
+  role      MembershipRole @default(MEMBER)
+  createdAt DateTime       @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entity Entity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entityId])
+  @@index([entityId])
+}
+
+// ─────────────────────────── Auth.js tables ────────────────────────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─────────────────────────── Taskers, skills, teams ────────────────────────
+
+enum TaskerLevel {
+  JUNIOR
+  INTERMEDIATE
+  SENIOR
+  EXPERT
+}
+
+model TaskerProfile {
+  id          String      @id @default(cuid())
+  userId      String      @unique
+  headline    String?
+  bio         String?     @db.Text
+  level       TaskerLevel @default(INTERMEDIATE)
+  hourlyRate  Decimal?    @db.Decimal(10, 2)
+  currency    String      @default("USD")
+  available   Boolean     @default(true)
+  timezone    String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills TaskerSkill[]
+}
+
+model Skill {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  category String?
+
+  taskers   TaskerSkill[]
+  tasks     Task[]        @relation("TaskRequiredSkills")
+  taskTypes TaskType[]    @relation("TaskTypeSkills")
+}
+
+model TaskerSkill {
+  id              String      @id @default(cuid())
+  taskerProfileId String
+  skillId         String
+  level           TaskerLevel @default(INTERMEDIATE)
+
+  taskerProfile TaskerProfile @relation(fields: [taskerProfileId], references: [id], onDelete: Cascade)
+  skill         Skill         @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([taskerProfileId, skillId])
+}
+
+enum TeamRole {
+  LEAD
+  MEMBER
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner         User             @relation("TeamOwner", fields: [ownerId], references: [id])
+  members       TeamMembership[]
+  tasks         Task[]
+  assignments   Assignment[]
+  methodologies Methodology[]
+}
+
+model TeamMembership {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  role      TeamRole @default(MEMBER)
+  // When true, this member can access requestor files for tasks routed to the
+  // team even before an individual assignment is made.
+  canAccessFiles Boolean @default(true)
+  createdAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId])
+}
+
+// ─────────────────────── Task types & custom fields ────────────────────────
+
+enum FieldKind {
+  TEXT
+  TEXTAREA
+  NUMBER
+  DATE
+  SELECT
+  MULTISELECT
+  CHECKBOX
+  URL
+  FILE
+}
+
+// A configurable category of work. Admins (and entity owners) can define new
+// task types together with the exact set of inputs a requestor must provide.
+model TaskType {
+  id              String  @id @default(cuid())
+  name            String
+  slug            String  @unique
+  description     String? @db.Text
+  category        String?
+  isActive        Boolean @default(true)
+  // Defaults used to seed each new task of this type.
+  defaultBudget   Decimal? @db.Decimal(12, 2)
+  defaultHours    Decimal? @db.Decimal(8, 2)
+  requiredLevel   TaskerLevel?
+  // Routing: auto-assign or require dispatcher review.
+  autoAssign      Boolean @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  fields        TaskTypeField[]
+  tasks         Task[]
+  defaultSkills Skill[]         @relation("TaskTypeSkills")
+  methodologies Methodology[]
+}
+
+model TaskTypeField {
+  id          String    @id @default(cuid())
+  taskTypeId  String
+  label       String
+  key         String
+  helpText    String?
+  kind        FieldKind @default(TEXT)
+  required    Boolean   @default(false)
+  // For SELECT / MULTISELECT.
+  options     Json?
+  // For FILE fields.
+  maxFiles    Int?      @default(5)
+  allowedMime String?   // comma-separated list, e.g. "application/pdf,image/*"
+  order       Int       @default(0)
+
+  taskType    TaskType         @relation(fields: [taskTypeId], references: [id], onDelete: Cascade)
+  fieldValues TaskFieldValue[]
+  files       StoredFile[]
+
+  @@unique([taskTypeId, key])
+  @@index([taskTypeId])
+}
+
+// ─────────────────────────────── Tasks ─────────────────────────────────────
+
+enum TaskStatus {
+  DRAFT
+  SUBMITTED
+  TRIAGE // awaiting dispatcher review / assignment
+  ASSIGNED
+  IN_PROGRESS
+  SUBMITTED_FOR_QC
+  QC_IN_REVIEW
+  SECOND_OPINION
+  REVISION_REQUESTED
+  APPROVED
+  DELIVERED
+  ON_HOLD
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  reference   String       @unique // human-friendly, e.g. TF-1024
+  title       String
+  description String?      @db.Text
+  status      TaskStatus   @default(DRAFT)
+  priority    TaskPriority @default(NORMAL)
+
+  taskTypeId String
+  // Who requested it, and on whose behalf.
+  requestorId String
+  entityId    String?
+
+  // Assignment (current). History lives in Assignment[].
+  assigneeId     String?
+  assignedTeamId String?
+
+  // Routing hints.
+  requiredLevel TaskerLevel?
+
+  // Plan/budget snapshot (authoritative plan is the APPROVED ProjectPlan).
+  budgetAmount Decimal? @db.Decimal(12, 2)
+  budgetHours  Decimal? @db.Decimal(8, 2)
+  currency     String   @default("USD")
+
+  dueDate     DateTime?
+  submittedAt DateTime?
+  assignedAt  DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  deliveredAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  taskType     TaskType @relation(fields: [taskTypeId], references: [id])
+  requestor    User     @relation("RequestedTasks", fields: [requestorId], references: [id])
+  entity       Entity?  @relation(fields: [entityId], references: [id])
+  assignee     User?    @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  assignedTeam Team?    @relation(fields: [assignedTeamId], references: [id])
+
+  requiredSkills Skill[] @relation("TaskRequiredSkills")
+
+  fieldValues  TaskFieldValue[]
+  files        StoredFile[]
+  assignments  Assignment[]
+  plans        ProjectPlan[]
+  timeEntries  TimeEntry[]
+  deliverables Deliverable[]
+  qcReviews    QcReview[]
+  comments     Comment[]
+  usageRecords UsageRecord[]
+  payouts      Payout[]
+  methodologyEntries MethodologyEntry[]
+
+  @@index([status])
+  @@index([requestorId])
+  @@index([assigneeId])
+  @@index([entityId])
+}
+
+model TaskFieldValue {
+  id      String @id @default(cuid())
+  taskId  String
+  fieldId String
+  value   Json
+
+  task  Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  field TaskTypeField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, fieldId])
+}
+
+// ───────────────────────── Files & access control ──────────────────────────
+
+enum FileScope {
+  REQUESTOR_INPUT // uploaded by the requestor as part of the brief
+  TASKER_DELIVERABLE // uploaded by the tasker as output
+  QC_ATTACHMENT
+  METHODOLOGY_ATTACHMENT
+  REFERENCE
+}
+
+// Files are never served from a public bucket. Bytes live in S3-compatible
+// storage (or local disk); access is brokered by the app after an ACL check.
+model StoredFile {
+  id          String    @id @default(cuid())
+  // Storage key inside the bucket / local root (opaque, not user-controlled).
+  storageKey  String    @unique
+  filename    String
+  mimeType    String
+  size        Int
+  scope       FileScope @default(REQUESTOR_INPUT)
+  checksum    String?
+
+  taskId        String?
+  fieldId       String?
+  deliverableId String?
+  uploaderId    String
+
+  createdAt DateTime @default(now())
+
+  task        Task?          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  field       TaskTypeField? @relation(fields: [fieldId], references: [id], onDelete: SetNull)
+  deliverable Deliverable?   @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  uploader    User           @relation(fields: [uploaderId], references: [id])
+
+  @@index([taskId])
+}
+
+// ───────────────────────── Assignment & routing ────────────────────────────
+
+enum AssignmentStatus {
+  ACTIVE
+  REASSIGNED
+  COMPLETED
+  CANCELLED
+}
+
+model Assignment {
+  id           String           @id @default(cuid())
+  taskId       String
+  assigneeId   String?
+  teamId       String?
+  assignedById String
+  status       AssignmentStatus @default(ACTIVE)
+  note         String?
+  createdAt    DateTime         @default(now())
+  endedAt      DateTime?
+
+  task       Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  assignee   User? @relation("AssigneeAssignments", fields: [assigneeId], references: [id])
+  team       Team? @relation(fields: [teamId], references: [id])
+  assignedBy User  @relation("AssignedByAssignments", fields: [assignedById], references: [id])
+
+  @@index([taskId])
+}
+
+// ─────────────────────── Plans, milestones, budget ─────────────────────────
+
+enum PricingModel {
+  HOURLY
+  FIXED
+}
+
+enum PlanStatus {
+  DRAFT
+  PROPOSED
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+// A tasker's proposed budget/plan for a task. Requestors approve it and later
+// track actual delivery (time entries) against it.
+model ProjectPlan {
+  id            String       @id @default(cuid())
+  taskId        String
+  taskerId      String
+  pricingModel  PricingModel @default(FIXED)
+  estimatedHours Decimal?    @db.Decimal(8, 2)
+  hourlyRate    Decimal?     @db.Decimal(10, 2)
+  fixedPrice    Decimal?     @db.Decimal(12, 2)
+  currency      String       @default("USD")
+  summary       String?      @db.Text
+  status        PlanStatus   @default(DRAFT)
+  submittedAt   DateTime?
+  decidedAt     DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  task       Task            @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tasker     User            @relation(fields: [taskerId], references: [id])
+  milestones PlanMilestone[]
+
+  @@index([taskId])
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+  BLOCKED
+}
+
+model PlanMilestone {
+  id          String          @id @default(cuid())
+  planId      String
+  title       String
+  description String?
+  amount      Decimal?        @db.Decimal(12, 2)
+  hours       Decimal?        @db.Decimal(8, 2)
+  dueDate     DateTime?
+  status      MilestoneStatus @default(PENDING)
+  order       Int             @default(0)
+
+  plan ProjectPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+}
+
+// Actual resource spend (time/cost), compared against plan & budget.
+model TimeEntry {
+  id          String   @id @default(cuid())
+  taskId      String
+  taskerId    String
+  minutes     Int
+  description String?
+  billable    Boolean  @default(true)
+  costAmount  Decimal? @db.Decimal(12, 2) // computed actual cost for this entry
+  spentOn     DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tasker User @relation(fields: [taskerId], references: [id])
+
+  @@index([taskId])
+}
+
+// ─────────────────────── Deliverables & quality control ────────────────────
+
+enum DeliverableStatus {
+  DRAFT
+  SUBMITTED
+  IN_QC
+  APPROVED
+  REJECTED
+  DELIVERED
+}
+
+model Deliverable {
+  id          String            @id @default(cuid())
+  taskId      String
+  taskerId    String
+  title       String
+  notes       String?           @db.Text
+  version     Int               @default(1)
+  status      DeliverableStatus @default(SUBMITTED)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  task      Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tasker    User         @relation(fields: [taskerId], references: [id])
+  files     StoredFile[]
+  qcReviews QcReview[]
+
+  @@index([taskId])
+}
+
+enum QcDecision {
+  APPROVED
+  REVISION_REQUESTED
+  REJECTED
+  ESCALATED // request a second opinion
+}
+
+enum ReviewKind {
+  PRIMARY_QC
+  SECOND_OPINION
+}
+
+model QcReview {
+  id            String     @id @default(cuid())
+  taskId        String
+  deliverableId String?
+  reviewerId    String
+  kind          ReviewKind @default(PRIMARY_QC)
+  decision      QcDecision
+  score         Int? // 1..100 quality score
+  comments      String?    @db.Text
+  // For escalations: links a SECOND_OPINION back to the PRIMARY_QC review.
+  parentReviewId String?
+  createdAt     DateTime   @default(now())
+
+  task          Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  deliverable   Deliverable? @relation(fields: [deliverableId], references: [id])
+  reviewer      User         @relation(fields: [reviewerId], references: [id])
+  parentReview  QcReview?    @relation("QcEscalation", fields: [parentReviewId], references: [id])
+  childReviews  QcReview[]   @relation("QcEscalation")
+
+  @@index([taskId])
+}
+
+// ───────────── Methodologies (tasker-defined work documentation) ────────────
+
+// Taskers/teams define reusable "interfaces" — a structured schema of sections
+// and fields — to document how a class of work is performed. Each task can have
+// one or more filled-in entries.
+model Methodology {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  // JSON schema describing sections/steps/fields used to capture work.
+  schema      Json
+  ownerId     String
+  teamId      String?
+  taskTypeId  String?
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner    User             @relation(fields: [ownerId], references: [id])
+  team     Team?            @relation(fields: [teamId], references: [id])
+  taskType TaskType?        @relation(fields: [taskTypeId], references: [id])
+  entries  MethodologyEntry[]
+}
+
+model MethodologyEntry {
+  id            String   @id @default(cuid())
+  methodologyId String
+  taskId        String
+  authorId      String
+  // Filled-in data conforming to Methodology.schema.
+  data          Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  methodology Methodology @relation(fields: [methodologyId], references: [id], onDelete: Cascade)
+  task        Task        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author      User        @relation(fields: [authorId], references: [id])
+
+  @@index([taskId])
+}
+
+// ─────────────────────────── Billing & payouts ─────────────────────────────
+
+enum PlanTier {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+}
+
+// Subscription belongs to EXACTLY ONE of: an Entity, or a standalone User.
+model Subscription {
+  id          String             @id @default(cuid())
+  entityId    String?            @unique
+  ownerUserId String?            @unique
+  tier        PlanTier           @default(FREE)
+  status      SubscriptionStatus @default(TRIALING)
+  // Usage-based metering within the current period.
+  includedTasks Int              @default(5)
+  usageThisPeriod Int            @default(0)
+  periodStart DateTime           @default(now())
+  periodEnd   DateTime?
+  // Payment-provider linkage (opaque; provider is swappable).
+  externalCustomerId String?
+  externalSubscriptionId String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  entity       Entity?       @relation("EntitySubscription", fields: [entityId], references: [id], onDelete: Cascade)
+  owner        User?         @relation("UserSubscription", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  usageRecords UsageRecord[]
+  invoices     Invoice[]
+}
+
+model UsageRecord {
+  id             String   @id @default(cuid())
+  subscriptionId String
+  taskId         String?
+  units          Int      @default(1)
+  amount         Decimal? @db.Decimal(12, 2)
+  description    String?
+  createdAt      DateTime @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  task         Task?        @relation(fields: [taskId], references: [id])
+
+  @@index([subscriptionId])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  VOID
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  subscriptionId String
+  amount         Decimal       @db.Decimal(12, 2)
+  currency       String        @default("USD")
+  status         InvoiceStatus @default(DRAFT)
+  externalId     String?
+  periodStart    DateTime?
+  periodEnd      DateTime?
+  issuedAt       DateTime      @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+enum PayoutStatus {
+  PENDING
+  APPROVED
+  PAID
+  CANCELLED
+}
+
+// Tasker compensation for a completed task, net of platform commission.
+model Payout {
+  id              String       @id @default(cuid())
+  taskerId        String
+  taskId          String
+  grossAmount     Decimal      @db.Decimal(12, 2)
+  commissionRate  Decimal      @db.Decimal(5, 4) // e.g. 0.1500
+  commissionAmount Decimal     @db.Decimal(12, 2)
+  netAmount       Decimal      @db.Decimal(12, 2)
+  currency        String       @default("USD")
+  status          PayoutStatus @default(PENDING)
+  externalId      String?
+  createdAt       DateTime     @default(now())
+  paidAt          DateTime?
+
+  tasker User @relation(fields: [taskerId], references: [id])
+  task   Task @relation(fields: [taskId], references: [id])
+
+  @@index([taskerId])
+}
+
+// ─────────────────────────── Collaboration & audit ─────────────────────────
+
+enum CommentVisibility {
+  INTERNAL // taskers/admins only
+  CLIENT // visible to the requestor too
+}
+
+model Comment {
+  id         String            @id @default(cuid())
+  taskId     String
+  authorId   String
+  body       String            @db.Text
+  visibility CommentVisibility @default(INTERNAL)
+  createdAt  DateTime          @default(now())
+
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id])
+
+  @@index([taskId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String?
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  targetType String
+  targetId   String
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([targetType, targetId])
+}

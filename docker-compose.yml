@@ -1,0 +1,52 @@
+# Local / self-hosted dependencies for TaskFlow.
+#   docker compose up -d
+# Brings up PostgreSQL and a MinIO (S3-compatible) object store, and creates
+# the bucket. The app itself runs with `pnpm dev` or the bundled Dockerfile.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: taskflow
+      POSTGRES_PASSWORD: taskflow
+      POSTGRES_DB: taskflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: taskflow
+      MINIO_ROOT_PASSWORD: taskflow-secret
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # web console
+    volumes:
+      - miniodata:/data
+
+  # One-shot job that creates the bucket once MinIO is up.
+  createbucket:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until (mc alias set local http://minio:9000 taskflow taskflow-secret) do echo 'waiting for minio'; sleep 2; done;
+      mc mb -p local/taskflow;
+      mc anonymous set none local/taskflow;
+      echo 'bucket ready';
+      exit 0;
+      "
+
+volumes:
+  pgdata:
+  miniodata:
