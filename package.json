@@ -2,6 +2,7 @@
   "name": "taskflow-platform",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.6.0",
   "description": "TaskFlow — a managed marketplace platform that collects task requests, assigns them to taskers, tracks delivery against budget, runs quality control, and pays everyone.",
   "license": "MIT",
   "scripts": {
@@ -52,6 +53,6 @@
     "typescript": "^5.7.2"
   },
   "engines": {
-    "node": ">=20"
+    "node": "22.x"
   }
 }
