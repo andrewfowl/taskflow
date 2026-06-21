@@ -1,4 +1,10 @@
-import type { Batch, Item } from "@prisma/client";
+import type {
+  Batch,
+  Item,
+  JudgmentKind,
+  QcDecision,
+  DefectCode,
+} from "@prisma/client";
 
 // Objective release gates for a data batch. Pure and dependency-free so it can
 // be unit-tested and reused. Gates that depend on the review/annotation layer
@@ -16,11 +22,25 @@ export type GateResult = {
 };
 
 type BatchGateInput = Pick<Batch, "acceptanceThreshold" | "targetCount">;
-type ItemGateInput = Pick<Item, "status" | "input" | "schemaVersion">;
+type ItemGateInput = Pick<Item, "id" | "status" | "input" | "schemaVersion">;
+type JudgmentGateInput = {
+  itemId: string;
+  kind: JudgmentKind;
+  decision: QcDecision;
+  defects: DefectCode[];
+};
+
+// Defect codes severe enough to block a release outright.
+const CRITICAL_DEFECTS: DefectCode[] = [
+  "SAFETY_MISS",
+  "FACTUAL_ERROR",
+  "HALLUCINATED_CITATION",
+];
 
 export function evaluateGates(
   batch: BatchGateInput,
   items: ItemGateInput[],
+  judgments?: JudgmentGateInput[],
 ): { gates: GateResult[]; passed: boolean } {
   const total = items.length;
   const gates: GateResult[] = [];
@@ -86,22 +106,59 @@ export function evaluateGates(
     detail: "auto-generated",
   });
 
-  // Deferred gates — require the review/annotation layer (Phase 3).
-  for (const [key, label] of DEFERRED_GATES) {
-    gates.push(skip(key, label, "pending review/annotation layer"));
+  // 6 & 7. Review-dependent gates — computed once judgments are supplied,
+  // otherwise skipped (so a release cut before any review does not false-fail).
+  if (judgments === undefined) {
+    gates.push(
+      skip("reviewer_completion", "Reviewer completion", "pending review layer"),
+    );
+    gates.push(
+      skip("critical_defects", "Critical defect rate", "pending review layer"),
+    );
+  } else {
+    const reviewedIds = new Set(
+      judgments
+        .filter(
+          (j) =>
+            j.kind === "REVIEW" &&
+            (j.decision === "APPROVED" || j.decision === "REJECTED"),
+        )
+        .map((j) => j.itemId),
+    );
+    const reviewed = items.filter((it) => reviewedIds.has(it.id)).length;
+    gates.push({
+      key: "reviewer_completion",
+      label: "Reviewer completion",
+      status: total > 0 && reviewed === total ? "pass" : "fail",
+      detail: `${reviewed}/${total} reviewed`,
+    });
+
+    const criticalIds = new Set(
+      judgments
+        .filter((j) => j.defects.some((d) => CRITICAL_DEFECTS.includes(d)))
+        .map((j) => j.itemId),
+    );
+    const critical = items.filter((it) => criticalIds.has(it.id)).length;
+    gates.push({
+      key: "critical_defects",
+      label: "Critical defect rate",
+      status: critical === 0 ? "pass" : "fail",
+      detail: `${pct(total > 0 ? critical / total : 0)} · ${critical} item(s) (≤ 0%)`,
+    });
   }
+
+  // Still deferred — need a client-acceptance workflow / eval integration.
+  gates.push(
+    skip("client_acceptance", "Client acceptance", "manual / SLA — not yet wired"),
+  );
+  gates.push(
+    skip("model_impact", "Model-impact check", "pending eval integration"),
+  );
 
   // A release passes when nothing fails (skipped gates do not block).
   const passed = gates.every((g) => g.status !== "fail");
   return { gates, passed };
 }
-
-const DEFERRED_GATES: [string, string][] = [
-  ["critical_defects", "Critical defect rate"],
-  ["reviewer_completion", "Reviewer completion"],
-  ["client_acceptance", "Client acceptance"],
-  ["model_impact", "Model-impact check"],
-];
 
 function skip(key: string, label: string, detail: string): GateResult {
   return { key, label, status: "skip", detail };
