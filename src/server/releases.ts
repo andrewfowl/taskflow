@@ -1,14 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { Prisma } from "@prisma/client";
+import { Prisma, type ClientDecision } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
-import { evaluateGates } from "@/lib/release-gates";
+import { reevaluateRelease } from "./release-eval";
 
-// Cut a new Release for a batch: evaluate the objective gates, store the
-// per-gate results and an auto-generated dataset card, and set the release
-// status to PASSED / GATED accordingly. See docs/data-production.md §7.
+// A pending release is deemed accepted by the client after this SLA window.
+const CLIENT_SLA_DAYS = 3;
+
+// Cut a new Release for a batch: generate a dataset card, open a client-
+// acceptance window, and evaluate the objective gates.
+// See docs/data-production.md §7.
 export async function createRelease(formData: FormData) {
   await requireAdmin();
   const batchId = String(formData.get("batchId") || "");
@@ -16,21 +19,9 @@ export async function createRelease(formData: FormData) {
 
   const batch = await prisma.batch.findUniqueOrThrow({
     where: { id: batchId },
-    include: {
-      rubricVersion: true,
-      _count: { select: { releases: true } },
-    },
+    include: { rubricVersion: true, _count: { select: { releases: true } } },
   });
-  const items = await prisma.item.findMany({
-    where: { batchId },
-    select: { id: true, status: true, input: true, schemaVersion: true },
-  });
-  const judgments = await prisma.judgment.findMany({
-    where: { item: { batchId } },
-    select: { itemId: true, kind: true, decision: true, defects: true },
-  });
-
-  const { gates, passed } = evaluateGates(batch, items, judgments);
+  const itemCount = await prisma.item.count({ where: { batchId } });
 
   const now = new Date();
   const seq = batch._count.releases + 1;
@@ -44,27 +35,40 @@ export async function createRelease(formData: FormData) {
     batch: batch.reference,
     kind: batch.kind,
     replicas: batch.replicas,
-    itemCount: items.length,
+    itemCount,
     generatedAt: now.toISOString(),
   };
 
-  await prisma.release.create({
+  const release = await prisma.release.create({
     data: {
       batchId,
       version,
-      status: passed ? "PASSED" : "GATED",
-      gateResults: gates as unknown as Prisma.InputJsonValue,
+      status: "DRAFT",
       datasetCard: datasetCard as Prisma.InputJsonValue,
+      clientStatus: "PENDING",
+      clientSlaAt: new Date(now.getTime() + CLIENT_SLA_DAYS * 86_400_000),
     },
   });
 
-  // A passing release marks the batch released.
-  if (passed) {
-    await prisma.batch.update({
-      where: { id: batchId },
-      data: { status: "RELEASED" },
-    });
+  await reevaluateRelease(release.id);
+  revalidatePath(`/app/admin/batches/${batchId}`);
+}
+
+// Record the client's sign-off decision on a release, then re-evaluate gates.
+export async function decideClientAcceptance(formData: FormData) {
+  await requireAdmin();
+  const releaseId = String(formData.get("releaseId") || "");
+  const decision = String(formData.get("decision") || "") as ClientDecision;
+  if (!releaseId || (decision !== "ACCEPTED" && decision !== "REJECTED")) {
+    throw new Error("A release and an accept/reject decision are required");
   }
 
-  revalidatePath(`/app/admin/batches/${batchId}`);
+  const release = await prisma.release.update({
+    where: { id: releaseId },
+    data: { clientStatus: decision, clientDecidedAt: new Date() },
+    select: { batchId: true },
+  });
+
+  await reevaluateRelease(releaseId);
+  revalidatePath(`/app/admin/batches/${release.batchId}`);
 }

@@ -4,6 +4,7 @@ import type {
   JudgmentKind,
   QcDecision,
   DefectCode,
+  ClientDecision,
 } from "@prisma/client";
 
 // Objective release gates for a data batch. Pure and dependency-free so it can
@@ -30,6 +31,7 @@ type JudgmentGateInput = {
   defects: DefectCode[];
 };
 type EvalGateInput = { lift: number };
+type ClientGateInput = { status: ClientDecision; slaAt: Date | null };
 
 // Defect codes severe enough to block a release outright.
 const CRITICAL_DEFECTS: DefectCode[] = [
@@ -43,6 +45,7 @@ export function evaluateGates(
   items: ItemGateInput[],
   judgments?: JudgmentGateInput[],
   evals?: EvalGateInput[],
+  client?: ClientGateInput,
 ): { gates: GateResult[]; passed: boolean } {
   const total = items.length;
   const gates: GateResult[] = [];
@@ -149,10 +152,39 @@ export function evaluateGates(
     });
   }
 
-  // Still deferred — need a client-acceptance workflow / eval integration.
-  gates.push(
-    skip("client_acceptance", "Client acceptance", "manual / SLA — not yet wired"),
-  );
+  // Client acceptance — accepted, rejected, or deemed-accepted once the SLA
+  // window elapses while still pending.
+  if (client === undefined) {
+    gates.push(skip("client_acceptance", "Client acceptance", "not requested"));
+  } else if (client.status === "ACCEPTED") {
+    gates.push({
+      key: "client_acceptance",
+      label: "Client acceptance",
+      status: "pass",
+      detail: "accepted",
+    });
+  } else if (client.status === "REJECTED") {
+    gates.push({
+      key: "client_acceptance",
+      label: "Client acceptance",
+      status: "fail",
+      detail: "rejected",
+    });
+  } else if (client.slaAt != null && Date.now() > client.slaAt.getTime()) {
+    gates.push({
+      key: "client_acceptance",
+      label: "Client acceptance",
+      status: "pass",
+      detail: "deemed accepted (SLA elapsed)",
+    });
+  } else {
+    gates.push({
+      key: "client_acceptance",
+      label: "Client acceptance",
+      status: "fail",
+      detail: "awaiting client",
+    });
+  }
   // Model-impact — computed once an EvalRun is recorded against the release
   // (the data → model feedback loop); a release passes if its best eval shows
   // non-negative lift.

@@ -925,6 +925,12 @@ enum ReleaseStatus {
 }
 
 // A versioned, gated dataset export with an audit trail and dataset card.
+enum ClientDecision {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model Release {
   id          String        @id @default(cuid())
   batchId     String
@@ -933,6 +939,10 @@ model Release {
   gateResults Json? // per-gate pass/fail (schema, defects, client acceptance…)
   datasetCard Json? // Google Data Card-style documentation
   exportKey   String? // StoredFile / object key of the export
+  // Client sign-off (gate) with an SLA deemed-accepted timer.
+  clientStatus    ClientDecision @default(PENDING)
+  clientDecidedAt DateTime?
+  clientSlaAt     DateTime?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 

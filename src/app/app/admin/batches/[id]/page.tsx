@@ -7,6 +7,7 @@ import { relativeTime } from "@/lib/utils";
 import { AddItemsForm } from "./item-form";
 import { CutReleaseForm } from "./release-form";
 import { RecordEvalForm } from "./eval-form";
+import { ClientDecisionForm } from "./client-form";
 import type { GateResult } from "@/lib/release-gates";
 
 export const dynamic = "force-dynamic";
@@ -123,6 +124,37 @@ export default async function BatchDetail({
                           </span>
                         );
                       })}
+                    </div>
+                  )}
+                  {rel.clientStatus === "PENDING" ? (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-gray-500">
+                        Client sign-off pending
+                        {rel.clientSlaAt
+                          ? ` · SLA ${rel.clientSlaAt.toLocaleDateString()}`
+                          : ""}
+                      </span>
+                      <ClientDecisionForm
+                        releaseId={rel.id}
+                        decision="ACCEPTED"
+                        className="rounded bg-green-600 px-2 py-1 text-xs font-medium text-white"
+                      >
+                        Accept
+                      </ClientDecisionForm>
+                      <ClientDecisionForm
+                        releaseId={rel.id}
+                        decision="REJECTED"
+                        className="rounded bg-rose-600 px-2 py-1 text-xs font-medium text-white"
+                      >
+                        Reject
+                      </ClientDecisionForm>
+                    </div>
+                  ) : (
+                    <div className="mt-2 text-xs text-gray-500">
+                      Client {rel.clientStatus.toLowerCase()}
+                      {rel.clientDecidedAt
+                        ? ` · ${relativeTime(rel.clientDecidedAt)}`
+                        : ""}
                     </div>
                   )}
                   <RecordEvalForm releaseId={rel.id} />
