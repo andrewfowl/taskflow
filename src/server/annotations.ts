@@ -9,14 +9,15 @@ import {
   type QcDecision,
 } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { requireAdmin, requireViewer } from "@/lib/session";
 import { computeAgreement } from "@/lib/agreement";
 
 // A worker submits one independent annotation for an item. Once the item has
 // collected K (= Batch.replicas) annotations it advances to ANNOTATED and its
 // inter-annotator agreement is (re)computed onto Item.agreementScore.
 export async function submitAnnotation(formData: FormData) {
-  const viewer = await requireAdmin();
+  const viewer = await requireViewer();
   const itemId = String(formData.get("itemId") || "");
   const raw = String(formData.get("data") || "").trim();
   if (!itemId || !raw) throw new Error("Item and data are required");
@@ -32,6 +33,13 @@ export async function submitAnnotation(formData: FormData) {
     where: { id: itemId },
     include: { batch: { select: { id: true, replicas: true } } },
   });
+
+  // One independent annotation per worker per item.
+  const mine = await prisma.annotation.findFirst({
+    where: { itemId, workerId: viewer.id },
+    select: { id: true },
+  });
+  if (mine) throw new Error("You have already annotated this item.");
 
   await prisma.annotation.create({
     data: { itemId, workerId: viewer.id, data },
@@ -54,6 +62,10 @@ export async function submitAnnotation(formData: FormData) {
   });
 
   revalidatePath(`/app/admin/batches/${item.batch.id}/items/${itemId}`);
+  revalidatePath("/app/tasker/annotate");
+
+  const redirectTo = String(formData.get("redirectTo") || "");
+  if (redirectTo) redirect(redirectTo);
 }
 
 // A reviewer records a Judgment on an item (optionally a specific annotation),
