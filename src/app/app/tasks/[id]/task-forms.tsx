@@ -162,6 +162,23 @@ export function SubmitDeliverableForm({ taskId }: { taskId: string }) {
 
 // ── Quality control ──────────────────────────────────────────────────────────
 
+// Defect taxonomy options (mirror of the Prisma DefectCode enum) with
+// human-readable labels. See docs/data-production.md §5.
+const DEFECT_OPTIONS: [string, string][] = [
+  ["INSTRUCTION_NONCOMPLIANCE", "Instruction noncompliance"],
+  ["FACTUAL_ERROR", "Factual error"],
+  ["REASONING_GAP", "Reasoning gap"],
+  ["RUBRIC_MISMATCH", "Rubric mismatch"],
+  ["PREFERENCE_INCONSISTENCY", "Preference inconsistency"],
+  ["SAFETY_MISS", "Safety miss"],
+  ["DOMAIN_ERROR", "Domain error"],
+  ["SCHEMA_ERROR", "Formatting / schema error"],
+  ["LOW_EFFORT", "Low effort"],
+  ["HALLUCINATED_CITATION", "Hallucinated citation"],
+  ["DUPLICATE", "Duplicate / near-duplicate"],
+  ["REVIEWER_ERROR", "Reviewer error"],
+];
+
 export function QcReviewForm({ taskId, deliverableId }: { taskId: string; deliverableId?: string }) {
   return (
     <form action={submitQcReview} className="space-y-3">
@@ -179,6 +196,22 @@ export function QcReviewForm({ taskId, deliverableId }: { taskId: string; delive
         <div>
           <label className="label">Quality score (1–100)</label>
           <input name="score" type="number" min={1} max={100} className="input" />
+        </div>
+      </div>
+      <div>
+        <label className="label">Defects (optional)</label>
+        <div className="mt-1 grid grid-cols-1 gap-1 sm:grid-cols-2">
+          {DEFECT_OPTIONS.map(([value, label]) => (
+            <label key={value} className="flex items-center gap-2 text-sm text-gray-600">
+              <input
+                type="checkbox"
+                name="defects"
+                value={value}
+                className="h-4 w-4 rounded border-gray-300 text-brand-600"
+              />
+              {label}
+            </label>
+          ))}
         </div>
       </div>
       <div>

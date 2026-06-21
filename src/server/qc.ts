@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { Prisma, type QcDecision } from "@prisma/client";
+import { Prisma, DefectCode, type QcDecision } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireViewer } from "@/lib/session";
 import { getTaskAccess } from "@/lib/access";
@@ -34,6 +34,12 @@ export async function submitQcReview(formData: FormData) {
   const score = formData.get("score") ? parseInt(String(formData.get("score")), 10) : null;
   const comments = String(formData.get("comments") || "").trim() || null;
   const deliverableId = String(formData.get("deliverableId") || "") || null;
+  // Structured defect taxonomy (multi-select), validated against the enum.
+  const allowedDefects = new Set<string>(Object.values(DefectCode));
+  const defects = formData
+    .getAll("defects")
+    .map(String)
+    .filter((d): d is DefectCode => allowedDefects.has(d));
 
   const review = await prisma.qcReview.create({
     data: {
@@ -43,6 +49,7 @@ export async function submitQcReview(formData: FormData) {
       kind: "PRIMARY_QC",
       decision,
       score,
+      defects,
       comments,
     },
   });
@@ -78,7 +85,7 @@ export async function submitQcReview(formData: FormData) {
     action: "qc.reviewed",
     targetType: "Task",
     targetId: taskId,
-    meta: { decision, reviewId: review.id },
+    meta: { decision, reviewId: review.id, defects },
   });
   revalidatePath(`/app/tasks/${taskId}`);
   revalidatePath("/app/admin/qc");

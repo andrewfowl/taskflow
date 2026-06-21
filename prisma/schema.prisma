@@ -566,6 +566,24 @@ enum ReviewKind {
   SECOND_OPINION
 }
 
+// Structured defect taxonomy — captures *why* work failed (not just a score),
+// enabling root-cause analysis (task design vs worker vs reviewer vs client
+// ambiguity). See docs/data-production.md §5.
+enum DefectCode {
+  INSTRUCTION_NONCOMPLIANCE // output ignores task requirements
+  FACTUAL_ERROR             // claim is wrong or unsupported
+  REASONING_GAP             // explanation incomplete or invalid
+  RUBRIC_MISMATCH           // rating does not follow criteria
+  PREFERENCE_INCONSISTENCY  // ranking contradicts stated rationale
+  SAFETY_MISS               // harmful/policy-violating content not flagged
+  DOMAIN_ERROR              // expert standard violated
+  SCHEMA_ERROR              // output cannot be ingested cleanly
+  LOW_EFFORT                // generic, shallow, or unusable response
+  HALLUCINATED_CITATION     // fabricated or irrelevant source support
+  DUPLICATE                 // near-duplicate, adds little signal
+  REVIEWER_ERROR            // reviewer approved defective work
+}
+
 model QcReview {
   id            String     @id @default(cuid())
   taskId        String
@@ -574,6 +592,7 @@ model QcReview {
   kind          ReviewKind @default(PRIMARY_QC)
   decision      QcDecision
   score         Int? // 1..100 quality score
+  defects       DefectCode[] // structured defect taxonomy (empty on a clean pass)
   comments      String?    @db.Text
   // For escalations: links a SECOND_OPINION back to the PRIMARY_QC review.
   parentReviewId String?
