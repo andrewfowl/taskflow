@@ -6,6 +6,7 @@ import { Section } from "@/components/app/ui";
 import { relativeTime } from "@/lib/utils";
 import { AddItemsForm } from "./item-form";
 import { CutReleaseForm } from "./release-form";
+import { RecordEvalForm } from "./eval-form";
 import type { GateResult } from "@/lib/release-gates";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,10 @@ export default async function BatchDetail({
       rubricVersion: true,
       _count: { select: { items: true } },
       items: { orderBy: { createdAt: "desc" }, take: 20 },
-      releases: { orderBy: { createdAt: "desc" } },
+      releases: {
+        orderBy: { createdAt: "desc" },
+        include: { evalRuns: { orderBy: { createdAt: "desc" } } },
+      },
     },
   });
   if (!batch) notFound();
@@ -99,6 +103,29 @@ export default async function BatchDetail({
                       </span>
                     ))}
                   </div>
+                  {rel.evalRuns.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {rel.evalRuns.map((e) => {
+                        const m = e.metrics as { lift?: number } | null;
+                        const lift =
+                          m && typeof m.lift === "number" ? m.lift : 0;
+                        return (
+                          <span
+                            key={e.id}
+                            className={`badge ${
+                              lift >= 0
+                                ? "bg-green-50 text-green-700"
+                                : "bg-rose-50 text-rose-700"
+                            }`}
+                          >
+                            {e.target} {lift >= 0 ? "+" : ""}
+                            {(lift * 100).toFixed(1)}%
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <RecordEvalForm releaseId={rel.id} />
                 </li>
               );
             })}

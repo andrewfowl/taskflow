@@ -29,6 +29,7 @@ type JudgmentGateInput = {
   decision: QcDecision;
   defects: DefectCode[];
 };
+type EvalGateInput = { lift: number };
 
 // Defect codes severe enough to block a release outright.
 const CRITICAL_DEFECTS: DefectCode[] = [
@@ -41,6 +42,7 @@ export function evaluateGates(
   batch: BatchGateInput,
   items: ItemGateInput[],
   judgments?: JudgmentGateInput[],
+  evals?: EvalGateInput[],
 ): { gates: GateResult[]; passed: boolean } {
   const total = items.length;
   const gates: GateResult[] = [];
@@ -151,9 +153,22 @@ export function evaluateGates(
   gates.push(
     skip("client_acceptance", "Client acceptance", "manual / SLA — not yet wired"),
   );
-  gates.push(
-    skip("model_impact", "Model-impact check", "pending eval integration"),
-  );
+  // Model-impact — computed once an EvalRun is recorded against the release
+  // (the data → model feedback loop); a release passes if its best eval shows
+  // non-negative lift.
+  if (evals === undefined) {
+    gates.push(skip("model_impact", "Model-impact check", "pending eval"));
+  } else if (evals.length === 0) {
+    gates.push(skip("model_impact", "Model-impact check", "no eval recorded"));
+  } else {
+    const bestLift = Math.max(...evals.map((e) => e.lift));
+    gates.push({
+      key: "model_impact",
+      label: "Model-impact check",
+      status: bestLift >= 0 ? "pass" : "fail",
+      detail: `best lift ${bestLift >= 0 ? "+" : ""}${(bestLift * 100).toFixed(1)}%`,
+    });
+  }
 
   // A release passes when nothing fails (skipped gates do not block).
   const passed = gates.every((g) => g.status !== "fail");
