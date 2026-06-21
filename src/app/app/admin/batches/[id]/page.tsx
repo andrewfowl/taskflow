@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
 import { Section } from "@/components/app/ui";
@@ -111,21 +112,23 @@ export default async function BatchDetail({
         ) : (
           <ul className="space-y-2">
             {batch.items.map((it) => (
-              <li
-                key={it.id}
-                className="rounded-lg border border-gray-100 p-2 text-sm"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="badge bg-gray-100 text-gray-600">
-                    {it.status}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {relativeTime(it.createdAt)}
-                  </span>
-                </div>
-                <pre className="mt-1 overflow-x-auto rounded bg-gray-50 p-2 text-xs text-gray-700">
-                  {JSON.stringify(it.input, null, 2)}
-                </pre>
+              <li key={it.id}>
+                <Link
+                  href={`/app/admin/batches/${batch.id}/items/${it.id}`}
+                  className="block rounded-lg border border-gray-100 p-2 text-sm hover:bg-gray-50"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="badge bg-gray-100 text-gray-600">
+                      {it.status}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {relativeTime(it.createdAt)}
+                    </span>
+                  </div>
+                  <pre className="mt-1 overflow-x-auto rounded bg-gray-50 p-2 text-xs text-gray-700">
+                    {JSON.stringify(it.input, null, 2)}
+                  </pre>
+                </Link>
               </li>
             ))}
           </ul>

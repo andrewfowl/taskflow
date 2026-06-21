@@ -23,10 +23,14 @@ export async function createRelease(formData: FormData) {
   });
   const items = await prisma.item.findMany({
     where: { batchId },
-    select: { status: true, input: true, schemaVersion: true },
+    select: { id: true, status: true, input: true, schemaVersion: true },
+  });
+  const judgments = await prisma.judgment.findMany({
+    where: { item: { batchId } },
+    select: { itemId: true, kind: true, decision: true, defects: true },
   });
 
-  const { gates, passed } = evaluateGates(batch, items);
+  const { gates, passed } = evaluateGates(batch, items, judgments);
 
   const now = new Date();
   const seq = batch._count.releases + 1;

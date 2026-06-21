@@ -51,6 +51,8 @@ model User {
   methodologies       Methodology[]
   methodologyEntries  MethodologyEntry[]
   payouts             Payout[]
+  annotations         Annotation[]
+  judgments           Judgment[]
 
   // Shared
   uploadedFiles StoredFile[]
@@ -902,10 +904,13 @@ model Item {
   input         Json
   schemaVersion String
   qualityScore  Decimal?   @db.Decimal(5, 4)
+  agreementScore Decimal?  @db.Decimal(5, 4)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
   batch Batch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  annotations Annotation[]
+  judgments   Judgment[]
 
   @@index([batchId, status])
   @@index([batchId, isGold])
@@ -948,4 +953,61 @@ model EvalRun {
   release Release? @relation(fields: [releaseId], references: [id], onDelete: SetNull)
 
   @@index([releaseId])
+}
+
+// ─────────────── Annotation plane (K-way production + review) ───────────────
+// Items are worked by 1..K independent Annotations (decision D2) and gated by
+// layered Judgments (review → second opinion → QA audit → adjudication →
+// client), which reuse the work-plane QcDecision + DefectCode vocabulary.
+// Agreement across the K annotations feeds Item.agreementScore.
+// See docs/data-production.md.
+
+// One worker's independent output for an item (K per item, set by Batch.replicas).
+model Annotation {
+  id        String   @id @default(cuid())
+  itemId    String
+  workerId  String
+  data      Json // produced output, conforming to the batch's output schema
+  timeMs    Int? // wall-clock spent (→ throughput-at-quality)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  item      Item       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  worker    User       @relation(fields: [workerId], references: [id])
+  judgments Judgment[]
+
+  @@index([itemId])
+  @@index([workerId])
+}
+
+enum JudgmentKind {
+  REVIEW
+  SECOND_OPINION
+  QA_AUDIT
+  ADJUDICATION
+  CLIENT
+}
+
+// A review/adjudication on an item or a specific annotation. Mirrors QcReview
+// on the data plane, with structured defect codes and an escalation chain.
+model Judgment {
+  id           String       @id @default(cuid())
+  itemId       String
+  annotationId String? // null = item-level (adjudication / audit)
+  reviewerId   String
+  kind         JudgmentKind @default(REVIEW)
+  decision     QcDecision
+  score        Int? // 1..100
+  defects      DefectCode[]
+  comments     String?      @db.Text
+  parentId     String? // escalation chain
+  createdAt    DateTime     @default(now())
+
+  item       Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  annotation Annotation? @relation(fields: [annotationId], references: [id], onDelete: SetNull)
+  reviewer   User        @relation(fields: [reviewerId], references: [id])
+  parent     Judgment?   @relation("JudgmentEscalation", fields: [parentId], references: [id])
+  children   Judgment[]  @relation("JudgmentEscalation")
+
+  @@index([itemId])
 }
