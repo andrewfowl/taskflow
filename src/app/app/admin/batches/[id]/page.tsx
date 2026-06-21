@@ -4,6 +4,8 @@ import { requireAdmin } from "@/lib/session";
 import { Section } from "@/components/app/ui";
 import { relativeTime } from "@/lib/utils";
 import { AddItemsForm } from "./item-form";
+import { CutReleaseForm } from "./release-form";
+import type { GateResult } from "@/lib/release-gates";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,7 @@ export default async function BatchDetail({
       rubricVersion: true,
       _count: { select: { items: true } },
       items: { orderBy: { createdAt: "desc" }, take: 20 },
+      releases: { orderBy: { createdAt: "desc" } },
     },
   });
   if (!batch) notFound();
@@ -45,6 +48,61 @@ export default async function BatchDetail({
           an item awaiting annotation.
         </p>
         <AddItemsForm batchId={batch.id} />
+      </Section>
+
+      <Section
+        title="Releases"
+        action={<CutReleaseForm batchId={batch.id} />}
+      >
+        {batch.releases.length === 0 ? (
+          <p className="text-sm text-gray-400">
+            No releases yet. Cutting a release evaluates the batch against the
+            objective gates and records the result.
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {batch.releases.map((rel) => {
+              const gates = (rel.gateResults ?? []) as unknown as GateResult[];
+              return (
+                <li
+                  key={rel.id}
+                  className="rounded-lg border border-gray-100 p-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{rel.version}</span>
+                    <span
+                      className={`badge ${
+                        rel.status === "PASSED"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {rel.status}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {gates.map((g) => (
+                      <span
+                        key={g.key}
+                        title={g.detail}
+                        className={`badge ${
+                          g.status === "pass"
+                            ? "bg-green-50 text-green-700"
+                            : g.status === "fail"
+                              ? "bg-rose-50 text-rose-700"
+                              : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {g.status === "pass" ? "✓" : g.status === "fail" ? "✗" : "–"}{" "}
+                        {g.label}
+                      </span>
+                    ))}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </Section>
 
       <Section title={`Items (${batch._count.items})`}>
