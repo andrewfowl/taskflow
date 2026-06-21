@@ -47,6 +47,7 @@ export default async function AppLayout({
         { href: "/app/admin/triage", label: "Triage queue" },
         { href: "/app/admin/qc", label: "Quality control" },
         { href: "/app/admin/batches", label: "Data batches" },
+        { href: "/app/admin/rubrics", label: "Rubrics" },
         { href: "/app/admin/task-types", label: "Task types" },
         { href: "/app/admin/analytics", label: "Analytics" },
         { href: "/app/admin/payouts", label: "Payouts" },
