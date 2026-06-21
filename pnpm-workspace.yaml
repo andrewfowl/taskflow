@@ -1,0 +1,11 @@
+# pnpm 11 settings (the package.json "pnpm" field is no longer read). These
+# trusted dependencies are allowed to run their install/build scripts; without
+# this, pnpm 11 fails `pnpm install` with ERR_PNPM_IGNORED_BUILDS (pnpm 10 only
+# warned), which broke the Vercel build.
+allowBuilds:
+  '@prisma/client': true
+  '@prisma/engines': true
+  esbuild: true
+  prisma: true
+  sharp: true
+  unrs-resolver: true

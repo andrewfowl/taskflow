@@ -5,25 +5,34 @@ import { auth } from "@/lib/auth";
 export async function SiteHeader() {
   const session = await auth();
   return (
-    <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/70">
       <div className="container-px flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 font-semibold tracking-tight"
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-sm">
             <Workflow className="h-5 w-5" />
           </span>
           <span className="text-lg">TaskFlow</span>
         </Link>
-        <nav className="hidden items-center gap-6 text-sm text-gray-600 md:flex">
-          <Link href="/#how" className="hover:text-gray-900">
+        <nav className="hidden items-center gap-7 text-sm font-medium text-gray-600 md:flex">
+          <Link href="/#how" className="transition-colors hover:text-gray-900">
             How it works
           </Link>
-          <Link href="/#features" className="hover:text-gray-900">
+          <Link
+            href="/#features"
+            className="transition-colors hover:text-gray-900"
+          >
             Features
           </Link>
-          <Link href="/pricing" className="hover:text-gray-900">
+          <Link
+            href="/pricing"
+            className="transition-colors hover:text-gray-900"
+          >
             Pricing
           </Link>
-          <Link href="/docs" className="hover:text-gray-900">
+          <Link href="/docs" className="transition-colors hover:text-gray-900">
             Docs
           </Link>
         </nav>

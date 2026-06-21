@@ -29,6 +29,11 @@ export class S3StorageDriver implements StorageDriver {
       region: cfg.region,
       endpoint: cfg.endpoint,
       forcePathStyle: cfg.forcePathStyle,
+      // S3-compatible stores (Cloudflare R2, MinIO, Backblaze B2…) reject the
+      // aws-sdk v3 default integrity checksums; only send them when an
+      // operation actually requires it.
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      responseChecksumValidation: "WHEN_REQUIRED",
       credentials:
         cfg.accessKeyId && cfg.secretAccessKey
           ? {
