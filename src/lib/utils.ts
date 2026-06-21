@@ -47,6 +47,16 @@ export function taskReference() {
   return `TF-${out}`;
 }
 
+// Short, human-friendly batch reference like BX-7QK3.
+export function batchReference() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let out = "";
+  for (let i = 0; i < 4; i++) {
+    out += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+  return `BX-${out}`;
+}
+
 export function relativeTime(date: Date | string | null | undefined) {
   if (!date) return "—";
   const d = typeof date === "string" ? new Date(date) : date;
