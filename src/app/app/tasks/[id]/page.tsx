@@ -333,6 +333,18 @@ export default async function TaskDetail({
                       <span className="text-gray-400">{r.reviewer.name} · {relativeTime(r.createdAt)}</span>
                     </div>
                     {r.comments && <p className="mt-1 text-gray-600">{r.comments}</p>}
+                    {r.defects.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {r.defects.map((d) => (
+                          <span
+                            key={d}
+                            className="rounded bg-rose-50 px-1.5 py-0.5 text-xs text-rose-700"
+                          >
+                            {d.replace(/_/g, " ").toLowerCase()}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
