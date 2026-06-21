@@ -75,6 +75,7 @@ model Entity {
 
   memberships  Membership[]
   tasks        Task[]
+  batches      Batch[]
   subscription Subscription? @relation("EntitySubscription")
 }
 
@@ -361,6 +362,7 @@ model Task {
   usageRecords UsageRecord[]
   payouts      Payout[]
   methodologyEntries MethodologyEntry[]
+  commissionedBatches Batch[]
 
   @@index([status])
   @@index([requestorId])
@@ -782,4 +784,149 @@ model AuditLog {
   actor User? @relation(fields: [actorId], references: [id])
 
   @@index([targetType, targetId])
+}
+
+// ════════════════════════ Data production (LLM human-data) ══════════════════
+// A data plane layered over the work plane above: a Task commissions Batches of
+// fine-grained Items, governed by a versioned RubricVersion, exported as gated,
+// versioned Releases with a model-impact (EvalRun) feedback loop. The K-way
+// Annotation/Judgment layer (decision D2) lands in a later phase.
+// See docs/data-production.md.
+
+// A versioned data contract / rubric governing a batch.
+model RubricVersion {
+  id                  String    @id @default(cuid())
+  rubricId            String // logical rubric this version belongs to
+  version             String // e.g. v1.4
+  // Use case, unit of work, output schema, domain rules, edge cases, thresholds.
+  contract            Json
+  acceptanceThreshold Decimal?  @db.Decimal(5, 4)
+  publishedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  batches Batch[]
+
+  @@unique([rubricId, version])
+}
+
+enum BatchKind {
+  PILOT
+  PRODUCTION
+  CALIBRATION
+  REWORK
+}
+
+enum BatchStatus {
+  DRAFT
+  TASK_DESIGN
+  PILOT
+  CALIBRATION
+  PRODUCTION
+  IN_REVIEW
+  QA_AUDIT
+  CLIENT_ACCEPTANCE
+  ACCEPTED
+  RELEASED
+  ON_HOLD
+  CANCELLED
+}
+
+// A controlled release unit of data items, commissioned by a Task (the
+// commercial wrapper) and governed by a RubricVersion.
+model Batch {
+  id                  String      @id @default(cuid())
+  reference           String      @unique // human-friendly, e.g. BX-1024
+  projectTaskId       String? // commissioning Task (commercial wrapper)
+  entityId            String? // client
+  rubricVersionId     String
+  kind                BatchKind   @default(PRODUCTION)
+  status              BatchStatus @default(DRAFT)
+  // K — independent annotations per item (single-pass when 1).
+  replicas            Int         @default(1)
+  acceptanceThreshold Decimal?    @db.Decimal(5, 4)
+  targetCount         Int?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  projectTask   Task?         @relation(fields: [projectTaskId], references: [id])
+  entity        Entity?       @relation(fields: [entityId], references: [id])
+  rubricVersion RubricVersion @relation(fields: [rubricVersionId], references: [id])
+  items         Item[]
+  releases      Release[]
+
+  @@index([status])
+  @@index([projectTaskId])
+  @@index([entityId])
+}
+
+enum ItemStatus {
+  PENDING
+  IN_ANNOTATION
+  ANNOTATED
+  IN_REVIEW
+  ADJUDICATION
+  ACCEPTED
+  REJECTED
+  RELEASED
+}
+
+// The fine-grained unit of work: a prompt, comparison pair, rating, critique…
+model Item {
+  id            String     @id @default(cuid())
+  batchId       String
+  status        ItemStatus @default(PENDING)
+  // Hidden gold task with an expected answer (+ rationale) for calibration.
+  isGold        Boolean    @default(false)
+  expected      Json?
+  // The prompt / pair / source under judgment, and its output-schema version.
+  input         Json
+  schemaVersion String
+  qualityScore  Decimal?   @db.Decimal(5, 4)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  batch Batch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId, status])
+  @@index([batchId, isGold])
+}
+
+enum ReleaseStatus {
+  DRAFT
+  GATED
+  PASSED
+  FAILED
+  EXPORTED
+}
+
+// A versioned, gated dataset export with an audit trail and dataset card.
+model Release {
+  id          String        @id @default(cuid())
+  batchId     String
+  version     String // dataset version, e.g. ds-2026.06.0
+  status      ReleaseStatus @default(DRAFT)
+  gateResults Json? // per-gate pass/fail (schema, defects, client acceptance…)
+  datasetCard Json? // Google Data Card-style documentation
+  exportKey   String? // StoredFile / object key of the export
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  batch    Batch     @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  evalRuns EvalRun[]
+
+  @@unique([batchId, version])
+}
+
+// A model-impact measurement linked to a release: the data → model feedback loop.
+model EvalRun {
+  id        String   @id @default(cuid())
+  releaseId String?
+  target    String // model / eval suite identifier
+  metrics   Json // eval lift, regressions, failure clusters
+  createdAt DateTime @default(now())
+
+  release Release? @relation(fields: [releaseId], references: [id], onDelete: SetNull)
+
+  @@index([releaseId])
 }
