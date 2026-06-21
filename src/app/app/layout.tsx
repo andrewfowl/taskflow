@@ -30,6 +30,7 @@ export default async function AppLayout({
       items: [
         { href: "/app/tasker", label: "My work" },
         { href: "/app/tasker/available", label: "Available tasks" },
+        { href: "/app/tasker/annotate", label: "Annotate" },
         { href: "/app/tasker/teams", label: "Teams" },
         { href: "/app/tasker/methodologies", label: "Methodologies" },
         { href: "/app/tasker/earnings", label: "Earnings" },
