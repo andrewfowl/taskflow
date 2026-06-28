@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
 import type { TaskStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getViewer } from "@/lib/session";
@@ -7,6 +8,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { Section, FileLink } from "@/components/app/ui";
 import { formatCurrency, formatHours, relativeTime } from "@/lib/utils";
 import { STATUS_TRANSITIONS } from "@/lib/constants";
+import { unmetDependencies, isSatisfied } from "@/lib/dependencies";
 import { AssignForm } from "./assign-form";
 import {
   StatusButton,
@@ -62,6 +64,11 @@ export default async function TaskDetail({
       comments: { include: { author: { select: { name: true } } }, orderBy: { createdAt: "asc" } },
       assignments: { include: { assignee: { select: { name: true } }, team: { select: { name: true } }, assignedBy: { select: { name: true } } }, orderBy: { createdAt: "desc" } },
       methodologyEntries: { include: { methodology: { select: { name: true } }, author: { select: { name: true } } }, orderBy: { createdAt: "desc" } },
+      project: { select: { id: true, name: true, reference: true } },
+      dependencies: {
+        include: { dependsOn: { select: { id: true, reference: true, status: true } } },
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
   if (!task) notFound();
@@ -69,6 +76,7 @@ export default async function TaskDetail({
   // Aggregates: actuals vs plan.
   const totalMinutes = task.timeEntries.reduce((s, e) => s + e.minutes, 0);
   const actualCost = task.timeEntries.reduce((s, e) => s + Number(e.costAmount ?? 0), 0);
+  const blockedBy = unmetDependencies(task.dependencies);
   const budgetAmount = task.budgetAmount ? Number(task.budgetAmount) : null;
   const budgetHours = task.budgetHours ? Number(task.budgetHours) : null;
   const costPct = budgetAmount ? Math.min(100, Math.round((actualCost / budgetAmount) * 100)) : null;
@@ -114,14 +122,32 @@ export default async function TaskDetail({
       {/* Main column */}
       <div className="space-y-6">
         <div>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
             <span>{task.reference}</span>
             <span>·</span>
             <span>{task.taskType.name}</span>
+            {task.project && (
+              <>
+                <span>·</span>
+                {access.canManage ? (
+                  <Link
+                    href={`/app/admin/projects/${task.project.id}`}
+                    className="text-brand-600 hover:underline"
+                  >
+                    {task.project.name}
+                  </Link>
+                ) : (
+                  <span>{task.project.name}</span>
+                )}
+              </>
+            )}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-bold">{task.title}</h1>
             <StatusBadge status={task.status} />
+            {blockedBy.length > 0 && (
+              <span className="badge bg-rose-100 text-rose-700">blocked</span>
+            )}
           </div>
           <div className="mt-1 text-sm text-gray-500">
             Requested by {task.requestor.name ?? task.requestor.email}
@@ -129,6 +155,54 @@ export default async function TaskDetail({
             {task.dueDate ? ` · due ${task.dueDate.toLocaleDateString()}` : ""}
           </div>
         </div>
+
+        {/* Dependencies */}
+        {task.dependencies.length > 0 && (
+          <div className="space-y-2">
+            {blockedBy.length > 0 && (
+              <div className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+                <span className="badge bg-rose-100 text-rose-700">blocked</span>
+                <span>
+                  Waiting on {blockedBy.length} unfinished{" "}
+                  {blockedBy.length === 1 ? "task" : "tasks"} before this can be
+                  claimed or started.
+                </span>
+              </div>
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium uppercase text-gray-400">
+                Depends on
+              </span>
+              {task.dependencies.map((d) => {
+                const done = isSatisfied(d.dependsOn.status);
+                return (
+                  <span
+                    key={d.id}
+                    className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs ${
+                      done
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-rose-50 text-rose-700"
+                    }`}
+                  >
+                    {access.canManage ? (
+                      <Link
+                        href={`/app/tasks/${d.dependsOn.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {d.dependsOn.reference}
+                      </Link>
+                    ) : (
+                      <span className="font-medium">{d.dependsOn.reference}</span>
+                    )}
+                    <span className="opacity-70">
+                      {d.dependsOn.status.replace(/_/g, " ").toLowerCase()}
+                    </span>
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Brief */}
         <Section title="Brief">
