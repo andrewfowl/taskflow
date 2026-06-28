@@ -57,6 +57,16 @@ export function batchReference() {
   return `BX-${out}`;
 }
 
+// Short, human-friendly project reference like PRJ-7QK3.
+export function projectReference() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let out = "";
+  for (let i = 0; i < 4; i++) {
+    out += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+  return `PRJ-${out}`;
+}
+
 export function relativeTime(date: Date | string | null | undefined) {
   if (!date) return "—";
   const d = typeof date === "string" ? new Date(date) : date;

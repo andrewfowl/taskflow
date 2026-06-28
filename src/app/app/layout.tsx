@@ -44,6 +44,7 @@ export default async function AppLayout({
       title: "Dispatcher",
       items: [
         { href: "/app/admin", label: "Pipeline" },
+        { href: "/app/admin/projects", label: "Projects" },
         { href: "/app/admin/triage", label: "Triage queue" },
         { href: "/app/admin/qc", label: "Quality control" },
         { href: "/app/admin/batches", label: "Data batches" },
