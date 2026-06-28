@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireViewer } from "@/lib/session";
 import { audit, notify } from "@/lib/activity";
+import { unmetDependencies } from "@/lib/dependencies";
 
 // Assign or reassign a task. Dispatcher-only. Closes any prior active
 // assignment (preserving history) and records the new one.
@@ -82,6 +83,17 @@ export async function claimTask(formData: FormData) {
   if (task.assigneeId) throw new Error("Already assigned");
   if (!["TRIAGE", "SUBMITTED"].includes(task.status)) {
     throw new Error("This task is not open for claiming");
+  }
+
+  // Enforce task dependencies: a task blocked by unfinished prerequisites
+  // cannot be claimed until they are delivered.
+  const deps = await prisma.taskDependency.findMany({
+    where: { taskId },
+    select: { dependsOn: { select: { reference: true, status: true } } },
+  });
+  const unmet = unmetDependencies(deps);
+  if (unmet.length > 0) {
+    throw new Error(`Blocked by unfinished dependencies: ${unmet.join(", ")}`);
   }
 
   await prisma.$transaction([

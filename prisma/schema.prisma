@@ -53,6 +53,7 @@ model User {
   payouts             Payout[]
   annotations         Annotation[]
   judgments           Judgment[]
+  ownedProjects       Project[]
 
   // Shared
   uploadedFiles StoredFile[]
@@ -78,6 +79,7 @@ model Entity {
   memberships  Membership[]
   tasks        Task[]
   batches      Batch[]
+  projects     Project[]
   subscription Subscription? @relation("EntitySubscription")
 }
 
@@ -323,6 +325,8 @@ model Task {
   // Who requested it, and on whose behalf.
   requestorId String
   entityId    String?
+  // Optional grouping into a multi-task project.
+  projectId   String?
 
   // Assignment (current). History lives in Assignment[].
   assigneeId     String?
@@ -365,11 +369,58 @@ model Task {
   payouts      Payout[]
   methodologyEntries MethodologyEntry[]
   commissionedBatches Batch[]
+  project      Project?         @relation(fields: [projectId], references: [id])
+  dependencies TaskDependency[] @relation("TaskDependencies")
+  dependents   TaskDependency[] @relation("TaskDependents")
 
   @@index([status])
   @@index([requestorId])
   @@index([assigneeId])
   @@index([entityId])
+  @@index([projectId])
+}
+
+// ─────────────────────── Projects & task dependencies ──────────────────────
+// A Project groups multiple Tasks; TaskDependency edges form a DAG so a task
+// can be gated on prerequisite tasks completing (blocked until they deliver).
+
+enum ProjectStatus {
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  reference   String        @unique // human-friendly, e.g. PRJ-7QK3
+  name        String
+  description String?       @db.Text
+  status      ProjectStatus @default(ACTIVE)
+  entityId    String?
+  ownerId     String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  entity Entity? @relation(fields: [entityId], references: [id])
+  owner  User    @relation(fields: [ownerId], references: [id])
+  tasks  Task[]
+
+  @@index([status])
+}
+
+// A dependency edge: `task` is blocked until `dependsOn` is delivered.
+model TaskDependency {
+  id              String   @id @default(cuid())
+  taskId          String
+  dependsOnTaskId String
+  createdAt       DateTime @default(now())
+
+  task      Task @relation("TaskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOn Task @relation("TaskDependents", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([dependsOnTaskId])
 }
 
 model TaskFieldValue {
