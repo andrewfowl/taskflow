@@ -13,14 +13,24 @@ export default async function AppLayout({
   const ctx = await getViewerContext();
   if (!ctx) redirect("/login");
 
+  const requestorItems = [
+    { href: "/app", label: "Home" },
+    { href: "/app/requestor", label: "My requests" },
+    { href: "/app/requestor/new", label: "New request" },
+  ];
+  // Buyers (organisation members) get a read-only window into the data batches
+  // their org has commissioned.
+  if (ctx.entities.length > 0) {
+    requestorItems.push({
+      href: "/app/requestor/batches",
+      label: "Data batches",
+    });
+  }
+
   const sections: NavSection[] = [
     {
       title: "Requestor",
-      items: [
-        { href: "/app", label: "Home" },
-        { href: "/app/requestor", label: "My requests" },
-        { href: "/app/requestor/new", label: "New request" },
-      ],
+      items: requestorItems,
     },
   ];
 
