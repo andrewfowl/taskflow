@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { Prisma, type ClientDecision } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/session";
+import { requireAdmin, requireViewer } from "@/lib/session";
 import { reevaluateRelease } from "./release-eval";
 
 // A pending release is deemed accepted by the client after this SLA window.
@@ -55,20 +55,39 @@ export async function createRelease(formData: FormData) {
 }
 
 // Record the client's sign-off decision on a release, then re-evaluate gates.
+// A platform admin can decide on anyone's behalf; a buyer can sign off on their
+// own org's release if they manage the commissioning entity (OWNER/ADMIN).
 export async function decideClientAcceptance(formData: FormData) {
-  await requireAdmin();
+  const viewer = await requireViewer();
   const releaseId = String(formData.get("releaseId") || "");
   const decision = String(formData.get("decision") || "") as ClientDecision;
   if (!releaseId || (decision !== "ACCEPTED" && decision !== "REJECTED")) {
     throw new Error("A release and an accept/reject decision are required");
   }
 
-  const release = await prisma.release.update({
+  const release = await prisma.release.findUniqueOrThrow({
+    where: { id: releaseId },
+    select: { batchId: true, batch: { select: { entityId: true } } },
+  });
+
+  if (!viewer.isPlatformAdmin) {
+    const entityId = release.batch.entityId;
+    const membership = entityId
+      ? await prisma.membership.findUnique({
+          where: { userId_entityId: { userId: viewer.id, entityId } },
+        })
+      : null;
+    const isManager =
+      membership?.role === "OWNER" || membership?.role === "ADMIN";
+    if (!isManager) throw new Error("Not permitted");
+  }
+
+  await prisma.release.update({
     where: { id: releaseId },
     data: { clientStatus: decision, clientDecidedAt: new Date() },
-    select: { batchId: true },
   });
 
   await reevaluateRelease(releaseId);
   revalidatePath(`/app/admin/batches/${release.batchId}`);
+  revalidatePath(`/app/requestor/batches/${release.batchId}`);
 }
