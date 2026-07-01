@@ -5,6 +5,7 @@ import { requireViewer, getViewerContext } from "@/lib/session";
 import { PageHeader, Section, StatCard } from "@/components/app/ui";
 import { relativeTime } from "@/lib/utils";
 import type { GateResult } from "@/lib/release-gates";
+import { ClientDecisionForm } from "@/components/app/client-decision-form";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +73,11 @@ export default async function RequestorBatchDetail({
   const avgAgreement = agg._avg.agreementScore
     ? Number(agg._avg.agreementScore)
     : null;
+
+  // Accepting a release is a contractual sign-off, so it's limited to managers
+  // of the commissioning org (members can still view the receipt).
+  const canSignOff =
+    ctx?.entities.find((e) => e.id === batch.entityId)?.isManager ?? false;
 
   const contract = (batch.rubricVersion.contract ?? {}) as Record<
     string,
@@ -255,6 +261,25 @@ export default async function RequestorBatchDetail({
                       </>
                     )}
                   </div>
+
+                  {rel.clientStatus === "PENDING" && canSignOff && (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <ClientDecisionForm
+                        releaseId={rel.id}
+                        decision="ACCEPTED"
+                        className="rounded bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700"
+                      >
+                        Accept release
+                      </ClientDecisionForm>
+                      <ClientDecisionForm
+                        releaseId={rel.id}
+                        decision="REJECTED"
+                        className="rounded bg-rose-600 px-3 py-1 text-xs font-medium text-white hover:bg-rose-700"
+                      >
+                        Request changes
+                      </ClientDecisionForm>
+                    </div>
+                  )}
 
                   {typeof card.generatedAt === "string" && (
                     <details className="mt-2">

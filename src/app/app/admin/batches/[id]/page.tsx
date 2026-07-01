@@ -7,7 +7,7 @@ import { relativeTime } from "@/lib/utils";
 import { AddItemsForm } from "./item-form";
 import { CutReleaseForm } from "./release-form";
 import { RecordEvalForm } from "./eval-form";
-import { ClientDecisionForm } from "./client-form";
+import { ClientDecisionForm } from "@/components/app/client-decision-form";
 import type { GateResult } from "@/lib/release-gates";
 
 export const dynamic = "force-dynamic";
