@@ -96,6 +96,40 @@ export function BatchForm() {
           />
         </div>
       </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="label">Auto-accept at agreement ≥</label>
+          <input
+            name="autoAcceptThreshold"
+            type="number"
+            step="0.01"
+            min={0}
+            max={1}
+            className="input"
+            placeholder="0.9"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            Items whose K annotations agree at least this much skip human
+            review. Leave empty to review every item. Needs K ≥ 2.
+          </p>
+        </div>
+        <div>
+          <label className="label">Audit sample rate</label>
+          <input
+            name="reviewSampleRate"
+            type="number"
+            step="0.01"
+            min={0}
+            max={1}
+            className="input"
+            placeholder="0.1"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            Fraction of auto-accept-eligible items still routed to a human as
+            an audit. Defaults to 0.1.
+          </p>
+        </div>
+      </div>
       <SubmitButton className="btn-primary">Create batch</SubmitButton>
     </form>
   );

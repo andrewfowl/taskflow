@@ -54,6 +54,16 @@ export default async function ItemWork({
               {agreement}% agreement
             </span>
           )}
+          {item.autoAccepted && (
+            <span className="badge bg-emerald-50 text-emerald-700">
+              auto-accepted
+            </span>
+          )}
+          {item.sampledForReview && (
+            <span className="badge bg-brand-50 text-brand-700">
+              audit sample
+            </span>
+          )}
           <span className="text-sm text-gray-400">
             {item.annotations.length}/{item.batch.replicas} annotations
           </span>

@@ -23,7 +23,10 @@ export type GateResult = {
 };
 
 type BatchGateInput = Pick<Batch, "acceptanceThreshold" | "targetCount">;
-type ItemGateInput = Pick<Item, "id" | "status" | "input" | "schemaVersion">;
+type ItemGateInput = Pick<
+  Item,
+  "id" | "status" | "input" | "schemaVersion" | "autoAccepted"
+>;
 type JudgmentGateInput = {
   itemId: string;
   kind: JudgmentKind;
@@ -130,12 +133,22 @@ export function evaluateGates(
         )
         .map((j) => j.itemId),
     );
-    const reviewed = items.filter((it) => reviewedIds.has(it.id)).length;
+    // An item is covered by a human review OR by the agreement router
+    // (auto-accepted under the batch's sampling policy).
+    const covered = items.filter(
+      (it) => reviewedIds.has(it.id) || it.autoAccepted,
+    ).length;
+    const auto = items.filter(
+      (it) => it.autoAccepted && !reviewedIds.has(it.id),
+    ).length;
     gates.push({
       key: "reviewer_completion",
       label: "Reviewer completion",
-      status: total > 0 && reviewed === total ? "pass" : "fail",
-      detail: `${reviewed}/${total} reviewed`,
+      status: total > 0 && covered === total ? "pass" : "fail",
+      detail:
+        auto > 0
+          ? `${covered}/${total} covered · ${auto} auto-accepted`
+          : `${covered}/${total} reviewed`,
     });
 
     const criticalIds = new Set(

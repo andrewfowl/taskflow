@@ -13,7 +13,13 @@ export async function reevaluateRelease(releaseId: string) {
   });
   const items = await prisma.item.findMany({
     where: { batchId: release.batchId },
-    select: { id: true, status: true, input: true, schemaVersion: true },
+    select: {
+      id: true,
+      status: true,
+      input: true,
+      schemaVersion: true,
+      autoAccepted: true,
+    },
   });
   const judgments = await prisma.judgment.findMany({
     where: { item: { batchId: release.batchId } },
