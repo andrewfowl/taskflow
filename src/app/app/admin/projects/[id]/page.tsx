@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/session";
 import { Section } from "@/components/app/ui";
 import { StatusBadge } from "@/components/status-badge";
 import { SubmitButton } from "@/components/app/submit-button";
-import { unmetDependencies } from "@/lib/dependencies";
+import { unmetDependencies, criticalPath } from "@/lib/dependencies";
 import { removeTaskFromProject, removeDependency } from "@/server/projects";
 import { AddTaskForm, AddDependencyForm } from "./project-controls";
 
@@ -47,6 +47,12 @@ export default async function ProjectDetail({
     reference: t.reference,
     title: t.title,
   }));
+  const delivered = project.tasks.filter(
+    (t) => t.status === "DELIVERED",
+  ).length;
+  const total = project.tasks.length;
+  const pct = total > 0 ? Math.round((delivered / total) * 100) : 0;
+  const path = criticalPath(project.tasks);
 
   return (
     <div className="space-y-6">
@@ -66,6 +72,32 @@ export default async function ProjectDetail({
           <p className="mt-1 text-sm text-gray-600">{project.description}</p>
         )}
       </div>
+
+      <Section title="Rollup">
+        <div className="flex flex-wrap items-center gap-8">
+          <div>
+            <div className="text-xs uppercase text-gray-400">Progress</div>
+            <div className="text-lg font-semibold">
+              {delivered}/{total} delivered · {pct}%
+            </div>
+            <div className="mt-1 h-2 w-48 rounded-full bg-gray-100">
+              <div
+                className="h-2 rounded-full bg-brand-600"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+          <div className="min-w-0">
+            <div className="text-xs uppercase text-gray-400">Critical path</div>
+            <div className="text-sm">
+              {path.length > 0 ? path.join(" → ") : "—"}{" "}
+              <span className="text-gray-400">
+                ({path.length} task{path.length === 1 ? "" : "s"})
+              </span>
+            </div>
+          </div>
+        </div>
+      </Section>
 
       <Section
         title={`Tasks (${project.tasks.length})`}
