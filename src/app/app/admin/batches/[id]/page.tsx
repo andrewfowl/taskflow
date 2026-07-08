@@ -8,6 +8,7 @@ import { AddItemsForm } from "./item-form";
 import { CutReleaseForm } from "./release-form";
 import { RecordEvalForm } from "./eval-form";
 import { ClientDecisionForm } from "@/components/app/client-decision-form";
+import type { ItemStatus } from "@prisma/client";
 import type { GateResult } from "@/lib/release-gates";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +35,21 @@ export default async function BatchDetail({
   });
   if (!batch) notFound();
 
+  // The human review queue, riskiest first: items whose K annotations are in,
+  // ordered by agreement ascending (unknown agreement = unknown risk = first).
+  const reviewStatuses: ItemStatus[] = ["ANNOTATED", "ADJUDICATION"];
+  const [needsReview, needsReviewCount, autoAcceptedCount] = await Promise.all([
+    prisma.item.findMany({
+      where: { batchId: batch.id, status: { in: reviewStatuses } },
+      orderBy: { agreementScore: { sort: "asc", nulls: "first" } },
+      take: 20,
+    }),
+    prisma.item.count({
+      where: { batchId: batch.id, status: { in: reviewStatuses } },
+    }),
+    prisma.item.count({ where: { batchId: batch.id, autoAccepted: true } }),
+  ]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -45,6 +61,9 @@ export default async function BatchDetail({
           {batch.rubricVersion.rubricId}@{batch.rubricVersion.version} ·{" "}
           {batch.kind} · K={batch.replicas} · {batch._count.items} item(s)
           {batch.targetCount ? ` / ${batch.targetCount} target` : ""}
+          {batch.autoAcceptThreshold
+            ? ` · auto-accept ≥ ${Math.round(Number(batch.autoAcceptThreshold) * 100)}% agreement (audit ${Math.round(Number(batch.reviewSampleRate) * 100)}%)`
+            : " · every item human-reviewed"}
         </div>
       </div>
 
@@ -54,6 +73,71 @@ export default async function BatchDetail({
           an item awaiting annotation.
         </p>
         <AddItemsForm batchId={batch.id} />
+      </Section>
+
+      <Section title={`Review queue (${needsReviewCount})`}>
+        {autoAcceptedCount > 0 && (
+          <p className="mb-3 text-sm text-gray-500">
+            {autoAcceptedCount} item{autoAcceptedCount === 1 ? "" : "s"}{" "}
+            auto-accepted by the agreement router — human effort goes to the
+            riskiest items below.
+          </p>
+        )}
+        {needsReview.length === 0 ? (
+          <p className="text-sm text-gray-400">
+            Nothing awaiting review. Items land here once their K annotations
+            are in, riskiest (lowest agreement) first.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {needsReview.map((it) => {
+              const agreement =
+                it.agreementScore != null
+                  ? Math.round(it.agreementScore.toNumber() * 100)
+                  : null;
+              return (
+                <li key={it.id}>
+                  <Link
+                    href={`/app/admin/batches/${batch.id}/items/${it.id}`}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-gray-100 p-2 text-sm hover:bg-gray-50"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={`badge ${
+                          agreement == null
+                            ? "bg-gray-100 text-gray-600"
+                            : agreement < 60
+                              ? "bg-rose-50 text-rose-700"
+                              : "bg-amber-50 text-amber-700"
+                        }`}
+                      >
+                        {agreement == null
+                          ? "no agreement yet"
+                          : `${agreement}% agreement`}
+                      </span>
+                      {it.isGold && (
+                        <span className="badge bg-purple-50 text-purple-700">
+                          gold
+                        </span>
+                      )}
+                      {it.sampledForReview && (
+                        <span className="badge bg-brand-50 text-brand-700">
+                          audit
+                        </span>
+                      )}
+                      <span className="badge bg-gray-100 text-gray-600">
+                        {it.status}
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      {relativeTime(it.updatedAt)}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </Section>
 
       <Section
@@ -177,9 +261,16 @@ export default async function BatchDetail({
                   className="block rounded-lg border border-gray-100 p-2 text-sm hover:bg-gray-50"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="badge bg-gray-100 text-gray-600">
-                      {it.status}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="badge bg-gray-100 text-gray-600">
+                        {it.status}
+                      </span>
+                      {it.autoAccepted && (
+                        <span className="badge bg-emerald-50 text-emerald-700">
+                          auto
+                        </span>
+                      )}
+                    </div>
                     <span className="text-xs text-gray-400">
                       {relativeTime(it.createdAt)}
                     </span>

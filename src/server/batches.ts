@@ -33,6 +33,12 @@ export async function createBatch(formData: FormData) {
   const acceptanceThreshold = thresholdRaw
     ? new Prisma.Decimal(thresholdRaw)
     : null;
+  // Agreement-driven QC routing policy (empty threshold = review every item;
+  // empty sample rate = schema default).
+  const autoRaw = String(formData.get("autoAcceptThreshold") || "").trim();
+  const autoAcceptThreshold = autoRaw ? new Prisma.Decimal(autoRaw) : null;
+  const sampleRaw = String(formData.get("reviewSampleRate") || "").trim();
+  const reviewSampleRate = sampleRaw ? new Prisma.Decimal(sampleRaw) : undefined;
 
   const rubricId = slugify(rubricName) || "rubric";
 
@@ -68,6 +74,8 @@ export async function createBatch(formData: FormData) {
       replicas,
       targetCount,
       acceptanceThreshold,
+      autoAcceptThreshold,
+      reviewSampleRate,
     },
   });
 

@@ -12,6 +12,7 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { requireAdmin, requireViewer } from "@/lib/session";
 import { computeAgreement } from "@/lib/agreement";
+import { routeItem } from "@/lib/qc-routing";
 
 // A worker submits one independent annotation for an item. Once the item has
 // collected K (= Batch.replicas) annotations it advances to ANNOTATED and its
@@ -31,7 +32,16 @@ export async function submitAnnotation(formData: FormData) {
 
   const item = await prisma.item.findUniqueOrThrow({
     where: { id: itemId },
-    include: { batch: { select: { id: true, replicas: true } } },
+    include: {
+      batch: {
+        select: {
+          id: true,
+          replicas: true,
+          autoAcceptThreshold: true,
+          reviewSampleRate: true,
+        },
+      },
+    },
   });
 
   // One independent annotation per worker per item.
@@ -50,14 +60,32 @@ export async function submitAnnotation(formData: FormData) {
     select: { data: true },
   });
   const agreement = computeAgreement(annotations);
-  const status: ItemStatus =
-    annotations.length >= item.batch.replicas ? "ANNOTATED" : "IN_ANNOTATION";
+  const complete = annotations.length >= item.batch.replicas;
+
+  // Route completed items: strong consensus skips human review (minus an audit
+  // sample); everything else — low agreement, gold, no threshold — waits in
+  // the review queue. See docs/data-production.md §8.
+  const decision = complete
+    ? routeItem({
+        agreement,
+        isGold: item.isGold,
+        autoAcceptThreshold: item.batch.autoAcceptThreshold?.toNumber() ?? null,
+        reviewSampleRate: item.batch.reviewSampleRate.toNumber(),
+      })
+    : null;
+  const status: ItemStatus = !complete
+    ? "IN_ANNOTATION"
+    : decision === "AUTO_ACCEPT"
+      ? "ACCEPTED"
+      : "ANNOTATED";
 
   await prisma.item.update({
     where: { id: itemId },
     data: {
       status,
       agreementScore: agreement != null ? new Prisma.Decimal(agreement) : null,
+      autoAccepted: decision === "AUTO_ACCEPT",
+      sampledForReview: decision === "SAMPLED_REVIEW",
     },
   });
 

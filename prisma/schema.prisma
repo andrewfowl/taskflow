@@ -918,6 +918,11 @@ model Batch {
   replicas            Int         @default(1)
   acceptanceThreshold Decimal?    @db.Decimal(5, 4)
   targetCount         Int?
+  // Agreement-driven QC routing (risk-based sampling, docs §8): items whose
+  // inter-annotator agreement reaches the threshold skip human review, except
+  // for an audit sample. Null threshold = review every item (the default).
+  autoAcceptThreshold Decimal?    @db.Decimal(5, 4)
+  reviewSampleRate    Decimal     @default(0.1) @db.Decimal(5, 4)
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
 
@@ -956,6 +961,10 @@ model Item {
   schemaVersion String
   qualityScore  Decimal?   @db.Decimal(5, 4)
   agreementScore Decimal?  @db.Decimal(5, 4)
+  // QC-routing outcome: accepted by the agreement router with no human review,
+  // or eligible for auto-accept but sampled into the review queue as an audit.
+  autoAccepted     Boolean @default(false)
+  sampledForReview Boolean @default(false)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
