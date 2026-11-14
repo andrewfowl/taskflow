@@ -101,8 +101,9 @@ export async function registerUser(
         });
       }
     });
-  } catch {
-    return { error: "Could not create your account. Please try again." };
+  } catch (err) {
+  console.error("[signup] account creation failed:", err);
+  return { error: "Could not create your account. Please try again." };
   }
 
   // Created — sign in (throws a redirect to /app on success).
