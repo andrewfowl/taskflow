@@ -15,6 +15,8 @@ const serverActionAllowedOrigins = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Dev assets and HMR are requested from the proxied preview origin.
+  allowedDevOrigins: ["*.v0.build", "*.vusercontent.net", "*.v0.app"],
   // Keep builds resilient: lint is run separately in CI, not during `next build`.
   eslint: {
     ignoreDuringBuilds: true,
