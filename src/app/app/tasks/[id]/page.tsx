@@ -9,6 +9,8 @@ import { Section, FileLink } from "@/components/app/ui";
 import { formatCurrency, formatHours, relativeTime } from "@/lib/utils";
 import { STATUS_TRANSITIONS } from "@/lib/constants";
 import { unmetDependencies, isSatisfied } from "@/lib/dependencies";
+import { parseSchema } from "@/lib/methodology-schema";
+import { EntryView } from "@/components/app/methodology-entry-view";
 import { AssignForm } from "./assign-form";
 import {
   StatusButton,
@@ -63,7 +65,7 @@ export default async function TaskDetail({
       qcReviews: { include: { reviewer: { select: { name: true } } }, orderBy: { createdAt: "desc" } },
       comments: { include: { author: { select: { name: true } } }, orderBy: { createdAt: "asc" } },
       assignments: { include: { assignee: { select: { name: true } }, team: { select: { name: true } }, assignedBy: { select: { name: true } } }, orderBy: { createdAt: "desc" } },
-      methodologyEntries: { include: { methodology: { select: { name: true } }, author: { select: { name: true } } }, orderBy: { createdAt: "desc" } },
+      methodologyEntries: { include: { methodology: { select: { name: true, schema: true } }, author: { select: { name: true } } }, orderBy: { createdAt: "desc" } },
       project: { select: { id: true, name: true, reference: true } },
       dependencies: {
         include: { dependsOn: { select: { id: true, reference: true, status: true } } },
@@ -107,11 +109,17 @@ export default async function TaskDetail({
 
   // Methodologies the producer can use to document this task.
   const methodologies = access.canSubmitWork
-    ? await prisma.methodology.findMany({
-        where: { OR: [{ ownerId: viewer.id }, { isPublished: true }] },
-        select: { id: true, name: true },
-        take: 50,
-      })
+    ? (
+        await prisma.methodology.findMany({
+          where: { OR: [{ ownerId: viewer.id }, { isPublished: true }] },
+          select: { id: true, name: true, schema: true, taskTypeId: true },
+          orderBy: { updatedAt: "desc" },
+          take: 50,
+        })
+      )
+        // Methodologies made for this task's type come first.
+        .sort((a, b) => Number(b.taskTypeId === task.taskTypeId) - Number(a.taskTypeId === task.taskTypeId))
+        .map((m) => ({ id: m.id, name: m.name, schema: parseSchema(m.schema) }))
     : [];
 
   const allowedNext = STATUS_TRANSITIONS[task.status] ?? [];
@@ -441,11 +449,11 @@ export default async function TaskDetail({
               <ul className="space-y-2">
                 {task.methodologyEntries.map((e) => (
                   <li key={e.id} className="rounded-lg border border-gray-100 p-3">
-                    <div className="text-sm font-medium">{e.methodology.name}</div>
-                    <pre className="mt-1 overflow-x-auto rounded bg-gray-50 p-2 text-xs text-gray-700">
-                      {JSON.stringify(e.data, null, 2)}
-                    </pre>
-                    <div className="text-xs text-gray-400">{e.author.name} · {relativeTime(e.createdAt)}</div>
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <div className="text-sm font-medium">{e.methodology.name}</div>
+                      <div className="text-xs text-gray-400">{e.author.name} · {relativeTime(e.createdAt)}</div>
+                    </div>
+                    <EntryView schema={parseSchema(e.methodology.schema)} data={e.data} />
                   </li>
                 ))}
               </ul>

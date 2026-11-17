@@ -1,6 +1,8 @@
 "use client";
 
-import { useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
+import type { EntryData, MethodologySchema } from "@/lib/methodology-schema";
+import { EntryFields } from "@/components/app/methodology-entry-fields";
 import type { TaskStatus } from "@prisma/client";
 import { changeStatus, addComment } from "@/server/tasks";
 import { submitPlan, decidePlan } from "@/server/plans";
@@ -270,25 +272,64 @@ export function AddMethodologyEntryForm({
   methodologies,
 }: {
   taskId: string;
-  methodologies: { id: string; name: string }[];
+  methodologies: { id: string; name: string; schema: MethodologySchema }[];
 }) {
-  if (methodologies.length === 0) return null;
+  const [state, formAction, pending] = useActionState(addMethodologyEntry, { error: null, issues: [], savedAt: 0 });
+  const [methodologyId, setMethodologyId] = useState(methodologies[0]?.id ?? "");
+  const [data, setData] = useState<EntryData>({});
+  const [handledSave, setHandledSave] = useState(0);
+
+  // Clear the form once a save succeeds (state reset during render, not in an effect).
+  if (state.savedAt !== handledSave) {
+    setHandledSave(state.savedAt);
+    setData({});
+  }
+
+  const selected = methodologies.find((m) => m.id === methodologyId);
+  if (!selected) return null;
+
   return (
-    <form action={addMethodologyEntry} className="space-y-2">
+    <form action={formAction} className="space-y-4">
       <input type="hidden" name="taskId" value={taskId} />
-      <select name="methodologyId" className="input">
-        {methodologies.map((m) => (
-          <option key={m.id} value={m.id}>{m.name}</option>
-        ))}
-      </select>
-      <textarea
-        name="data"
-        rows={3}
-        className="input font-mono text-xs"
-        placeholder='{"approach": "…", "findings": "…"}'
-        defaultValue="{}"
-      />
-      <SubmitButton className="btn-secondary">Save documentation</SubmitButton>
+      <input type="hidden" name="methodologyId" value={selected.id} />
+      <input type="hidden" name="data" value={JSON.stringify(data)} />
+      {methodologies.length > 1 && (
+        <div>
+          <label className="label" htmlFor="entry-methodology">Methodology</label>
+          <select
+            id="entry-methodology"
+            className="input"
+            value={selected.id}
+            onChange={(e) => {
+              setMethodologyId(e.target.value);
+              setData({});
+            }}
+          >
+            {methodologies.map((m) => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+      <EntryFields key={selected.id} schema={selected.schema} value={data} onChange={setData} idPrefix={`entry-${selected.id}`} />
+      {state.error && (
+        <div role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p>{state.error}</p>
+          {state.issues.length > 0 && (
+            <ul className="mt-1 list-disc pl-5">
+              {state.issues.slice(0, 6).map((i) => (
+                <li key={i}>{i}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+      {!state.error && state.savedAt > 0 && (
+        <p role="status" className="text-sm text-green-700">Documentation saved.</p>
+      )}
+      <button type="submit" className="btn-primary" disabled={pending}>
+        {pending ? "Saving…" : "Save documentation"}
+      </button>
     </form>
   );
 }
