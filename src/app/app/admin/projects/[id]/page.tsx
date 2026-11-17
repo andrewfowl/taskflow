@@ -64,7 +64,7 @@ export default async function ProjectDetail({
           ← Projects
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold">{project.name}</h1>
+          <h1 className="text-2xl font-medium">{project.name}</h1>
           <span className="badge bg-gray-100 text-gray-600">{project.status}</span>
           <span className="text-sm text-gray-400">{project.reference}</span>
         </div>

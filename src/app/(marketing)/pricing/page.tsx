@@ -15,7 +15,7 @@ export default function PricingPage() {
   return (
     <div className="container-px py-16">
       <div className="mx-auto max-w-2xl text-center">
-        <h1 className="text-4xl font-bold">Simple, usage-based pricing</h1>
+        <h1 className="text-4xl font-medium">Simple, usage-based pricing</h1>
         <p className="mt-4 text-gray-600">
           Requestors subscribe and pay for the volume they use. Taskers earn per
           task — hourly or fixed — and the platform takes a transparent
@@ -42,10 +42,10 @@ export default function PricingPage() {
               <div className="text-lg font-semibold">{plan.name}</div>
               <div className="mt-2">
                 {tier === "ENTERPRISE" ? (
-                  <span className="text-3xl font-bold">Custom</span>
+                  <span className="text-3xl font-medium">Custom</span>
                 ) : (
                   <>
-                    <span className="text-3xl font-bold">
+                    <span className="text-3xl font-medium">
                       ${plan.priceMonthly}
                     </span>
                     <span className="text-gray-500">/mo</span>

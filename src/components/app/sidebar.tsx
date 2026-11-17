@@ -9,29 +9,41 @@ export type NavSection = { title: string; items: NavItem[] };
 
 export function Sidebar({ sections }: { sections: NavSection[] }) {
   const pathname = usePathname();
+  const activeHref = sections
+    .flatMap((s) => s.items.map((i) => i.href))
+    .filter(
+      (href) =>
+        pathname === href ||
+        (href !== "/app" && pathname.startsWith(href + "/")),
+    )
+    .sort((a, b) => b.length - a.length)[0];
   return (
     <nav className="space-y-6">
       {sections.map((section) => (
         <div key={section.title}>
-          <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-            {section.title}
-          </div>
-          <ul className="space-y-1">
+          <div className="eyebrow mb-2 px-3 text-gray-400">{section.title}</div>
+          <ul className="space-y-0.5">
             {section.items.map((item) => {
-              const active =
-                pathname === item.href ||
-                (item.href !== "/app" && pathname.startsWith(item.href));
+              const active = item.href === activeHref;
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    aria-current={active ? "page" : undefined}
                     className={cn(
-                      "block rounded-lg px-3 py-2 text-sm font-medium",
+                      "flex items-center gap-2.5 rounded-full px-3 py-1.5 text-sm transition-colors",
                       active
-                        ? "bg-brand-50 text-brand-700"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                        ? "bg-white font-medium text-ink shadow-float ring-1 ring-hairline"
+                        : "text-muted hover:bg-white/70 hover:text-ink",
                     )}
                   >
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "h-1.5 w-1.5 flex-none rounded-full",
+                        active ? "bg-brand-600" : "bg-transparent",
+                      )}
+                    />
                     {item.label}
                   </Link>
                 </li>

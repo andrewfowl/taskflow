@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Sign in" };
 export default function LoginPage() {
   return (
     <div className="card p-8">
-      <h1 className="text-2xl font-bold">Welcome back</h1>
+      <h1 className="text-2xl font-medium">Welcome back</h1>
       <p className="mt-1 text-sm text-gray-600">
         Sign in to your TaskFlow workspace.
       </p>

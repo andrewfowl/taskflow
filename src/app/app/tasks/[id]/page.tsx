@@ -151,7 +151,7 @@ export default async function TaskDetail({
             )}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold">{task.title}</h1>
+            <h1 className="text-2xl font-medium">{task.title}</h1>
             <StatusBadge status={task.status} />
             {blockedBy.length > 0 && (
               <span className="badge bg-rose-100 text-rose-700">blocked</span>

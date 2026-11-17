@@ -54,7 +54,7 @@ export default async function BatchDetail({
     <div className="space-y-6">
       <div>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold">{batch.reference}</h1>
+          <h1 className="text-2xl font-medium">{batch.reference}</h1>
           <span className="badge bg-gray-100 text-gray-700">{batch.status}</span>
         </div>
         <div className="mt-1 text-sm text-gray-500">

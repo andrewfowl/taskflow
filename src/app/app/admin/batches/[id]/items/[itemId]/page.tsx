@@ -47,7 +47,7 @@ export default async function ItemWork({
           ← {item.batch.reference}
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-3">
-          <h1 className="text-xl font-bold">Item</h1>
+          <h1 className="text-xl font-medium">Item</h1>
           <span className="badge bg-gray-100 text-gray-700">{item.status}</span>
           {agreement != null && (
             <span className="badge bg-brand-50 text-brand-700">

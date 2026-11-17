@@ -68,42 +68,50 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <aside className="hidden w-64 flex-none flex-col border-r border-gray-200 bg-white lg:flex">
-        <div className="flex h-16 items-center border-b border-gray-100 px-5">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">
-              <Workflow className="h-5 w-5" />
+    <div className="flex min-h-screen bg-[#fafafa]">
+      <aside className="sticky top-0 hidden h-screen w-64 flex-none flex-col border-r border-hairline lg:flex">
+        <div className="flex h-16 items-center px-5">
+          <Link href="/" className="flex items-center gap-2.5 font-medium text-ink">
+            <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-brand-600 text-white shadow-sheen">
+              <Workflow className="h-[18px] w-[18px]" />
             </span>
-            TaskFlow
+            <span className="font-display text-[17px] tracking-[-0.01em]">TaskFlow</span>
           </Link>
         </div>
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto px-3 py-4">
           <Sidebar sections={sections} />
         </div>
-        <div className="border-t border-gray-100 p-4">
-          <div className="px-3 pb-2">
-            <div className="truncate text-sm font-medium text-gray-900">
-              {ctx.name || ctx.email}
+        <div className="m-3 rounded-[14px] border border-hairline bg-white p-3 shadow-hairline">
+          <div className="flex items-center gap-2.5 pb-2">
+            <span
+              aria-hidden
+              className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-brand-50 text-xs font-medium text-brand-700 ring-1 ring-brand-100"
+            >
+              {(ctx.name || ctx.email).slice(0, 1).toUpperCase()}
+            </span>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium text-ink">
+                {ctx.name || ctx.email}
+              </div>
+              <div className="truncate font-mono text-[11px] text-muted">{ctx.email}</div>
             </div>
-            <div className="truncate text-xs text-gray-500">{ctx.email}</div>
           </div>
           <SignOutButton />
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 lg:hidden">
-          <Link href="/app" className="flex items-center gap-2 font-semibold">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">
-              <Workflow className="h-5 w-5" />
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-hairline bg-white/80 px-4 backdrop-blur-md lg:hidden">
+          <Link href="/app" className="flex items-center gap-2.5 font-medium text-ink">
+            <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-brand-600 text-white shadow-sheen">
+              <Workflow className="h-[18px] w-[18px]" />
             </span>
-            TaskFlow
+            <span className="font-display text-[17px] tracking-[-0.01em]">TaskFlow</span>
           </Link>
           <SignOutButton />
         </header>
-        <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">
+        <main className="flex-1">
+          <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
             {children}
           </div>
         </main>

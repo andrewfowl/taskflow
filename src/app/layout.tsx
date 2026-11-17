@@ -1,8 +1,18 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist_Mono, Inter, Inter_Tight } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const interTight = Inter_Tight({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-display",
+});
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -17,8 +27,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="font-sans antialiased text-gray-900">{children}</body>
+    <html
+      lang="en"
+      className={`${inter.variable} ${interTight.variable} ${geistMono.variable}`}
+    >
+      <body className="font-sans antialiased text-ink">{children}</body>
     </html>
   );
 }

@@ -24,16 +24,25 @@ const config: Config = {
           900: "#312e81",
           950: "#1e1b4b",
         },
+        ink: "#141414",
+        muted: "#656565",
+        hairline: "#e5e7eb",
+        void: "#0a0a1f",
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "var(--font-sans)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       boxShadow: {
-        // Softer, cooler, layered elevation than Tailwind's defaults — reads
-        // calmer and more "product" than the stock drop shadow.
-        card: "0 1px 2px 0 rgb(16 24 40 / 0.04), 0 1px 3px 0 rgb(16 24 40 / 0.06)",
+        hairline: "0 0 0 1px rgb(0 0 0 / 0.02)",
+        card: "0 0 0 1px rgb(0 0 0 / 0.02)",
         "card-hover":
-          "0 8px 24px -6px rgb(16 24 40 / 0.10), 0 2px 6px -2px rgb(16 24 40 / 0.06)",
+          "0 12px 12px -3px rgb(0 0 0 / 0.04), 0 6px 6px -3px rgb(0 0 0 / 0.03), 0 1px 1px -0.5px rgb(0 0 0 / 0.03)",
+        float:
+          "0 12px 12px -3px rgb(0 0 0 / 0.06), 0 6px 6px -3px rgb(0 0 0 / 0.04), 0 3px 3px -1.5px rgb(0 0 0 / 0.02), 0 1px 1px -0.5px rgb(0 0 0 / 0.03)",
+        sheen:
+          "inset 0 1px 2px -0.5px rgb(255 255 255 / 0.12), inset 0 0.5px 0.5px 0 rgb(255 255 255 / 0.16), inset 0 8px 24px -4px rgb(255 255 255 / 0.16)",
         // A saturated brand-coloured glow for decisive primary actions.
         brand:
           "0 12px 32px -10px rgb(79 70 229 / 0.45), 0 4px 12px -4px rgb(79 70 229 / 0.30)",

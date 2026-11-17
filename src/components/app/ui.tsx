@@ -12,10 +12,12 @@ export function PageHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-        {description && <p className="mt-1 text-sm text-gray-600">{description}</p>}
+        <h1 className="text-3xl leading-tight">{title}</h1>
+        {description && (
+          <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted">{description}</p>
+        )}
       </div>
       {action}
     </div>
@@ -33,9 +35,11 @@ export function StatCard({
 }) {
   return (
     <div className="card p-5">
-      <div className="text-sm text-gray-500">{label}</div>
-      <div className="mt-1 text-2xl font-bold text-gray-900">{value}</div>
-      {hint && <div className="mt-1 text-xs text-gray-500">{hint}</div>}
+      <div className="eyebrow">{label}</div>
+      <div className="mt-3 font-display text-3xl font-medium tracking-[-0.015em] text-ink">
+        {value}
+      </div>
+      {hint && <div className="mt-1.5 text-xs text-muted">{hint}</div>}
     </div>
   );
 }
@@ -50,9 +54,9 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="card flex flex-col items-center justify-center px-6 py-16 text-center">
-      <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-      {description && <p className="mt-1 max-w-md text-sm text-gray-600">{description}</p>}
+    <div className="flex flex-col items-center justify-center rounded-[14px] border border-dashed border-gray-300 bg-white/60 px-6 py-16 text-center">
+      <h3 className="text-xl">{title}</h3>
+      {description && <p className="mt-2 max-w-md text-sm text-muted">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );
@@ -74,7 +78,7 @@ export function FileLink({
       href={`/api/files/${id}`}
       target="_blank"
       className={cn(
-        "inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm hover:bg-gray-50",
+        "inline-flex items-center gap-2 rounded-full border border-hairline bg-white px-3.5 py-1.5 text-sm transition-colors hover:border-gray-300 hover:bg-gray-50",
         className,
       )}
     >
@@ -97,9 +101,9 @@ export function Section({
   action?: React.ReactNode;
 }) {
   return (
-    <section className="card p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-semibold text-gray-900">{title}</h2>
+    <section className="card p-6">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <h2 className="text-lg">{title}</h2>
         {action}
       </div>
       {children}

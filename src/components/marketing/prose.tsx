@@ -13,7 +13,7 @@ export function Prose({
     <div
       className={cn(
         "max-w-none text-[15px] leading-7 text-gray-700",
-        "[&_h1]:mb-2 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:text-gray-900",
+        "[&_h1]:mb-2 [&_h1]:text-3xl [&_h1]:font-medium [&_h1]:text-gray-900",
         "[&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-gray-900",
         "[&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-gray-900",
         "[&_p]:my-4",

@@ -82,78 +82,94 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-brand-50/70 via-white to-white" />
+      <section className="relative isolate -mt-20 overflow-hidden bg-void pt-20 text-white">
         <div
           aria-hidden
-          className="absolute left-1/2 top-[-12%] -z-10 h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-brand-400/20 blur-3xl"
+          className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#ffffff_0%,#c7d2fe_14%,#6366f1_36%,#3730a3_58%,#1e1b4b_78%,#0a0a1f_100%)]"
         />
         <div
           aria-hidden
-          className="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-brand-300 to-transparent"
+          className="absolute inset-0 -z-10 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:linear-gradient(180deg,transparent_25%,black_60%,transparent)]"
         />
-        <div className="container-px py-24 sm:py-32">
+        <div className="container-px pb-24 pt-28 sm:pb-32 sm:pt-36">
           <div className="mx-auto max-w-3xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-brand-700 ring-1 ring-inset ring-brand-200 backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
+            <span className="eyebrow inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/60 px-3 py-1 text-ink backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-600" />
               Managed task marketplace · self-hostable
             </span>
-            <h1 className="mt-6 text-balance text-5xl font-extrabold tracking-tight sm:text-7xl">
-              Turn incoming requests into{" "}
-              <span className="bg-gradient-to-r from-brand-500 via-brand-600 to-brand-800 bg-clip-text text-transparent">
-                delivered work
-              </span>
-              .
+            <h1 className="mt-7 text-balance text-5xl leading-[1.08] text-white sm:text-[74px]">
+              Turn incoming requests into delivered work.
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-gray-600 sm:text-xl">
+            <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-white/70">
               TaskFlow collects task requests from your subscribers, routes them
               to the right people, tracks delivery against budget, runs quality
               control, and pays everyone — all on open infrastructure you fully
               control.
             </p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <Link
-                href="/register"
-                className="btn-primary btn-lg shadow-brand transition hover:-translate-y-0.5"
-              >
+              <Link href="/register" className="btn-primary btn-lg">
                 Start free <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href="/docs" className="btn-secondary btn-lg">
+              <Link
+                href="/docs"
+                className="btn btn-lg border border-white/30 text-white hover:bg-white/10"
+              >
                 Read the docs
               </Link>
             </div>
-            <p className="mt-4 text-sm text-gray-500">
-              No credit card required. Free tier includes 3 tasks per month.
+            <p className="mt-4 font-mono text-xs text-white/50">
+              No credit card required · Free tier includes 3 tasks per month
             </p>
+          </div>
+
+          <div className="mx-auto mt-16 grid max-w-4xl divide-y divide-white/10 rounded-[20px] border border-white/10 bg-white/[0.04] backdrop-blur sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            {[
+              [ClipboardList, "Intake", "Structured briefs per task type"],
+              [ShieldCheck, "Quality control", "Scored reviews before delivery"],
+              [Wallet, "Payouts", "Commission split automatically"],
+            ].map(([Icon, title, body]) => {
+              const I = Icon as typeof ClipboardList;
+              return (
+                <div key={title as string} className="flex items-start gap-3 p-5 text-left">
+                  <span className="flex h-10 w-10 flex-none items-center justify-center rounded-[10px] bg-white/10 ring-1 ring-white/15">
+                    <I className="h-5 w-5 text-white" />
+                  </span>
+                  <span>
+                    <span className="block text-sm font-medium text-white">{title as string}</span>
+                    <span className="mt-0.5 block text-sm text-white/60">{body as string}</span>
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* How it works */}
-      <section id="how" className="border-t border-gray-100 bg-white py-20 sm:py-24">
+      <section id="how" className="bg-white py-20 sm:py-28">
         <div className="container-px">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-balance text-3xl font-extrabold sm:text-4xl">
-              How it works
+            <span className="eyebrow-tag">How it works</span>
+            <h2 className="heading-display mt-5 text-balance text-4xl leading-[1.14] sm:text-5xl">
+              One pipeline, four hand-offs
             </h2>
-            <p className="mt-3 text-pretty text-gray-600">
-              One pipeline, four hand-offs — every step tracked and auditable.
+            <p className="mt-4 text-pretty text-muted">
+              Every step tracked and auditable.
             </p>
           </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-4">
+          <div className="mt-14 grid gap-3 md:grid-cols-4">
             {steps.map((s, i) => (
               <div
                 key={s.title}
                 className="card relative p-6 transition-shadow hover:shadow-card-hover"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-base font-bold text-white shadow-sm">
-                  {i + 1}
+                <div className="font-mono text-xs text-muted">
+                  {String(i + 1).padStart(2, "0")} / {s.role}
                 </div>
-                <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-brand-600">
-                  {s.role}
+                <div className="mt-6 font-display text-2xl font-medium tracking-[-0.01em]">
+                  {s.title}
                 </div>
-                <div className="mt-1 text-lg font-semibold">{s.title}</div>
-                <p className="mt-2 text-sm text-gray-600">{s.body}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{s.body}</p>
               </div>
             ))}
           </div>
@@ -161,28 +177,29 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="bg-gray-50 py-20 sm:py-24">
+      <section id="features" className="border-t border-hairline bg-gray-50 py-20 sm:py-28">
         <div className="container-px">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-balance text-3xl font-extrabold sm:text-4xl">
+            <span className="eyebrow-tag bg-white">Features</span>
+            <h2 className="heading-display mt-5 text-balance text-4xl leading-[1.14] sm:text-5xl">
               Everything the operation needs
             </h2>
-            <p className="mt-3 text-pretty text-gray-600">
+            <p className="mt-4 text-pretty text-muted">
               From intake to payout, with governance for organisations and
               privacy for every uploaded file.
             </p>
           </div>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((f) => (
               <div
                 key={f.title}
                 className="card p-6 transition-shadow hover:shadow-card-hover"
               >
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-sm">
+                <span className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-brand-100 bg-brand-50 text-brand-600">
                   <f.icon className="h-5 w-5" />
                 </span>
-                <div className="mt-4 font-semibold">{f.title}</div>
-                <p className="mt-2 text-sm text-gray-600">{f.body}</p>
+                <div className="mt-5 font-medium">{f.title}</div>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{f.body}</p>
               </div>
             ))}
           </div>
@@ -193,10 +210,11 @@ export default function HomePage() {
       <section className="bg-white py-20 sm:py-24">
         <div className="container-px grid items-center gap-10 lg:grid-cols-2">
           <div>
-            <h2 className="text-balance text-3xl font-extrabold sm:text-4xl">
+            <span className="eyebrow-tag">Roles</span>
+            <h2 className="heading-display mt-5 text-balance text-4xl leading-[1.14] sm:text-5xl">
               Three interfaces, one platform
             </h2>
-            <p className="mt-4 text-gray-600">
+            <p className="mt-4 text-muted">
               Each role gets a workspace built for the job — and entity members
               only ever see what their organisation permits.
             </p>
@@ -216,9 +234,14 @@ export default function HomePage() {
               ))}
             </ul>
           </div>
-          <div className="card overflow-hidden">
-            <div className="border-b border-gray-100 bg-gray-50 px-5 py-3 text-sm font-medium text-gray-500">
-              Pipeline overview
+          <div className="overflow-hidden rounded-[14px] border border-hairline bg-white shadow-float">
+            <div className="flex items-center gap-3 border-b border-hairline bg-gray-50 px-4 py-2.5">
+              <span aria-hidden className="flex gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#febc20]" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+              </span>
+              <span className="font-mono text-xs text-muted">Pipeline overview</span>
             </div>
             <div className="space-y-3 p-5">
               {[
@@ -229,9 +252,12 @@ export default function HomePage() {
               ].map(([title, status, tone]) => (
                 <div
                   key={title}
-                  className="flex items-center justify-between rounded-lg border border-gray-100 px-4 py-3"
+                  className="flex items-center justify-between rounded-[10px] border border-hairline px-4 py-3"
                 >
-                  <span className="text-sm font-medium">{title}</span>
+                  <span className="text-sm">
+                    <span className="font-mono text-xs text-muted">{title.split(" · ")[0]}</span>{" "}
+                    <span className="font-medium">{title.split(" · ")[1]}</span>
+                  </span>
                   <span className={`badge ${tone}`}>{status}</span>
                 </div>
               ))}
@@ -241,34 +267,29 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-brand-950 to-brand-900 py-20">
-        <div
-          aria-hidden
-          className="absolute right-0 top-0 h-72 w-72 translate-x-1/3 -translate-y-1/3 rounded-full bg-brand-500/30 blur-3xl"
-        />
-        <div className="container-px relative flex flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
+      <section className="bg-white pb-20 sm:pb-28">
+        <div className="container-px">
+        <div className="relative flex flex-col items-center justify-between gap-6 overflow-hidden rounded-[32px] bg-[linear-gradient(160deg,#3730a3_0%,#1e1b4b_55%,#0a0a1f_100%)] px-8 py-14 text-center sm:flex-row sm:px-14 sm:text-left">
           <div>
-            <h2 className="text-balance text-3xl font-extrabold text-white sm:text-4xl">
+            <h2 className="heading-display text-balance text-4xl leading-[1.14] text-white">
               Ready to run your task operation?
             </h2>
-            <p className="mt-3 text-lg text-brand-200">
+            <p className="mt-3 text-lg text-white/60">
               Spin it up in minutes, or self-host with one command.
             </p>
           </div>
-          <div className="flex gap-3">
-            <Link
-              href="/register"
-              className="btn btn-lg bg-white text-brand-700 shadow-sm hover:bg-brand-50"
-            >
-              Get started
+          <div className="flex flex-none gap-3">
+            <Link href="/register" className="btn-primary btn-lg">
+              Get started <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/docs/self-hosting"
-              className="btn btn-lg border border-white/40 text-white hover:bg-white/10"
+              className="btn btn-lg border border-white/30 text-white hover:bg-white/10"
             >
               Self-host
             </Link>
           </div>
+        </div>
         </div>
       </section>
     </>

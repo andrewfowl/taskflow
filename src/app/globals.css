@@ -4,7 +4,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #0b1220;
+  --foreground: #141414;
 }
 
 html {
@@ -17,16 +17,21 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  /* Inter's geometric single-story 'a' — a subtle, professional refinement. */
-  font-feature-settings: "cv11";
+  font-feature-settings: "cv01", "ss01", "cv11";
+  letter-spacing: -0.005em;
 }
 
 @layer base {
+  /* Authority through size and tracking, not weight. */
   h1,
   h2,
   h3,
   h4 {
-    @apply font-bold tracking-tight text-gray-900;
+    @apply font-sans font-medium tracking-normal text-ink;
+  }
+  h1,
+  .heading-display {
+    @apply font-display tracking-[-0.015em];
   }
 }
 
@@ -35,30 +40,36 @@ body {
     @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
   }
   .card {
-    @apply rounded-xl border border-gray-200 bg-white shadow-card;
+    @apply rounded-[14px] border border-hairline bg-white shadow-hairline;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
-    @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-700 active:bg-brand-800;
+    @apply btn bg-brand-600 text-white shadow-sheen hover:bg-brand-700 active:bg-brand-800;
   }
   .btn-secondary {
-    @apply btn border border-gray-300 bg-white text-gray-800 shadow-sm hover:bg-gray-50 active:bg-gray-100;
+    @apply btn border border-gray-300 bg-white text-ink hover:border-gray-400 hover:bg-gray-50 active:bg-gray-100;
   }
   .btn-ghost {
-    @apply btn text-gray-700 hover:bg-gray-100 active:bg-gray-200;
+    @apply btn text-gray-700 hover:bg-gray-100 hover:text-ink active:bg-gray-200;
   }
   .btn-lg {
-    @apply px-6 py-3 text-base;
+    @apply px-5 py-2.5 text-[15px];
   }
   .input {
-    @apply block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500;
+    @apply block w-full rounded-md border border-hairline bg-white px-3 py-2 text-sm text-ink transition-colors placeholder:text-gray-400 hover:border-gray-300 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/15;
   }
   .label {
-    @apply mb-1.5 block text-sm font-medium text-gray-700;
+    @apply mb-1.5 block text-[13px] font-medium text-gray-700;
   }
   .badge {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .eyebrow {
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-muted;
+  }
+  .eyebrow-tag {
+    @apply eyebrow inline-flex items-center gap-2 rounded-full border border-hairline bg-gray-50 px-3 py-1;
   }
 }

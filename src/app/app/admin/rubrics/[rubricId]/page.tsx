@@ -44,7 +44,7 @@ export default async function RubricDetail({
         >
           ← Rubrics
         </Link>
-        <h1 className="mt-1 text-2xl font-bold">{rubricId}</h1>
+        <h1 className="mt-1 text-2xl font-medium">{rubricId}</h1>
         <div className="text-sm text-gray-500">{versions.length} version(s)</div>
       </div>
 

@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Create account" };
 export default function RegisterPage() {
   return (
     <div className="card p-8">
-      <h1 className="text-2xl font-bold">Create your account</h1>
+      <h1 className="text-2xl font-medium">Create your account</h1>
       <p className="mt-1 text-sm text-gray-600">
         Start free — 3 tasks per month, no card required.
       </p>

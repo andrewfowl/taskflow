@@ -43,7 +43,7 @@ export default async function AnnotateItem({
         >
           ← Back to queue
         </Link>
-        <h1 className="mt-1 text-xl font-bold">Annotate item</h1>
+        <h1 className="mt-1 text-xl font-medium">Annotate item</h1>
         <div className="mt-1 text-sm text-gray-500">
           {item.batch.rubricVersion.rubricId}@{item.batch.rubricVersion.version}{" "}
           · {item.batch.reference}

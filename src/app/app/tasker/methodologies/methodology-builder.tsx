@@ -165,7 +165,7 @@ export function MethodologyBuilder({
       <div className="min-w-0 space-y-6">
         {isNew && (
           <section className="card p-5" aria-labelledby="templates-heading">
-            <h2 id="templates-heading" className="font-semibold text-gray-900">Start from a template</h2>
+            <h2 id="templates-heading" className="font-medium text-ink">Start from a template</h2>
             <p className="mt-1 text-sm text-gray-600">Pick the closest one, then adapt the sections and fields below.</p>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               {METHODOLOGY_TEMPLATES.map((t) => (
@@ -188,7 +188,7 @@ export function MethodologyBuilder({
         )}
 
         <section className="card space-y-4 p-5" aria-labelledby="details-heading">
-          <h2 id="details-heading" className="font-semibold text-gray-900">Details</h2>
+          <h2 id="details-heading" className="font-medium text-ink">Details</h2>
           <div>
             <label className="label" htmlFor="m-name">Name</label>
             <input id="m-name" name="name" className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Market research report" />
@@ -226,7 +226,7 @@ export function MethodologyBuilder({
         <section aria-labelledby="structure-heading" className="space-y-4">
           <div className="flex items-end justify-between">
             <div>
-              <h2 id="structure-heading" className="font-semibold text-gray-900">Structure</h2>
+              <h2 id="structure-heading" className="font-medium text-ink">Structure</h2>
               <p className="text-sm text-gray-600">
                 {sections.length} {sections.length === 1 ? "section" : "sections"} · {fieldCount} {fieldCount === 1 ? "field" : "fields"}
               </p>
@@ -381,7 +381,7 @@ export function MethodologyBuilder({
 
       <aside className="space-y-4 lg:sticky lg:top-6">
         <section className="card p-5" aria-labelledby="preview-heading">
-          <h2 id="preview-heading" className="font-semibold text-gray-900">Live preview</h2>
+          <h2 id="preview-heading" className="font-medium text-ink">Live preview</h2>
           <p className="mb-4 mt-1 text-xs text-gray-500">The form taskers fill in on each task. Try it, nothing is saved.</p>
           <div className="max-h-[60vh] overflow-y-auto pr-1">
             <EntryFields schema={previewSchema} value={preview} onChange={setPreview} idPrefix="preview" />
