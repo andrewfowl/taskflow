@@ -27,9 +27,38 @@ const credentialsSchema = z.object({
   password: z.string().min(1),
 });
 
+// Dev previews run inside a cross-site iframe (v0.app), where browsers drop
+// SameSite=Lax cookies, so every navigation after login looked signed out.
+// In development only, issue SameSite=None; Secure cookies (localhost is
+// treated as a secure context, so plain http://localhost still works).
+const isDev = process.env.NODE_ENV === "development";
+const iframeCookieOptions = {
+  httpOnly: true,
+  sameSite: "none" as const,
+  path: "/",
+  secure: true,
+};
+const devCookies = isDev
+  ? {
+      sessionToken: {
+        name: "__Secure-authjs.session-token",
+        options: iframeCookieOptions,
+      },
+      callbackUrl: {
+        name: "__Secure-authjs.callback-url",
+        options: iframeCookieOptions,
+      },
+      csrfToken: {
+        name: "__Host-authjs.csrf-token",
+        options: iframeCookieOptions,
+      },
+    }
+  : undefined;
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: env.authSecret,
   session: { strategy: "jwt" },
+  ...(isDev ? { useSecureCookies: true, cookies: devCookies } : {}),
   pages: {
     signIn: "/login",
   },
