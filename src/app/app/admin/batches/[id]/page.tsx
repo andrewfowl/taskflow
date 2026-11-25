@@ -79,8 +79,8 @@ export default async function BatchDetail({
         {autoAcceptedCount > 0 && (
           <p className="mb-3 text-sm text-gray-500">
             {autoAcceptedCount} item{autoAcceptedCount === 1 ? "" : "s"}{" "}
-            auto-accepted by the agreement router — human effort goes to the
-            riskiest items below.
+            auto-accepted because annotators agreed. The items below need a
+            human review.
           </p>
         )}
         {needsReview.length === 0 ? (

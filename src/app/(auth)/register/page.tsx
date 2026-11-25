@@ -9,7 +9,7 @@ export default function RegisterPage() {
     <div className="card p-8">
       <h1 className="text-2xl font-medium">Create your account</h1>
       <p className="mt-1 text-sm text-gray-600">
-        Start free — 3 tasks per month, no card required.
+        The free plan includes 3 tasks a month. No card required.
       </p>
       <div className="mt-6">
         <RegisterForm />

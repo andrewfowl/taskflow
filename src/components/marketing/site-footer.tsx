@@ -7,8 +7,8 @@ export function SiteFooter() {
         <div>
           <div className="text-lg font-semibold">TaskFlow</div>
           <p className="mt-2 max-w-xs text-sm text-gray-600">
-            The open managed-services platform. Self-host it or run it on any
-            cloud — no vendor lock-in.
+            Open-source software for running a managed task service. Host it on
+            any cloud or on your own servers.
           </p>
         </div>
         <div>

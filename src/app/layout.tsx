@@ -16,11 +16,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "TaskFlow — managed task marketplace",
+    default: "TaskFlow · Managed task marketplace",
     template: "%s · TaskFlow",
   },
   description:
-    "Collect task requests, route them to the right taskers, track delivery against budget, run quality control, and pay everyone — on open infrastructure you can self-host.",
+    "Take task requests, route them to the right taskers, track work against budget, review it before delivery, and pay out. Hosted or self-hosted.",
 };
 
 export default function RootLayout({

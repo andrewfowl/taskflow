@@ -32,7 +32,7 @@ export default async function TaskTypeDetail({ params }: { params: Promise<{ id:
 
       <Section title="Intake fields">
         {tt.fields.length === 0 ? (
-          <p className="text-sm text-gray-400">No custom fields — requestors just provide a title and description.</p>
+          <p className="text-sm text-gray-400">No custom fields. Requestors provide only a title and description.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>

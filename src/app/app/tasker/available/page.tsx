@@ -37,7 +37,7 @@ export default async function AvailableTasks() {
     <div>
       <PageHeader title="Available tasks" description="Open requests awaiting a tasker. Claim one to get started." />
       {tasks.length === 0 ? (
-        <EmptyState title="Nothing open right now" description="Check back soon — new requests appear here." />
+        <EmptyState title="Nothing open right now" description="New requests will show up here when they open." />
       ) : (
         <div className="space-y-3">
           {tasks.map((t) => (

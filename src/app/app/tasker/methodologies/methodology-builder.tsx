@@ -280,7 +280,7 @@ export function MethodologyBuilder({
                     onChange={(e) => updateSection(section.id, { repeatable: e.target.checked })}
                   />
                   Repeatable
-                  <span className="text-gray-500">— fill in several times, e.g. one per source</span>
+                  <span className="text-gray-500">(can be filled in more than once, e.g. one per source)</span>
                 </label>
                 {section.repeatable && (
                   <input

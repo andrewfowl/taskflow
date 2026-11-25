@@ -16,22 +16,22 @@ const features = [
   {
     icon: ClipboardList,
     title: "Configurable intake",
-    body: "Define new task types with exactly the required and optional inputs — text, dates, selects, and file uploads — that requestors must provide.",
+    body: "Give each task type its own form. Choose the required and optional fields: text, dates, dropdowns, and file uploads.",
   },
   {
     icon: GitBranch,
-    title: "Smart routing",
+    title: "Skill-based routing",
     body: "Auto-assign by skill and level, or send to a dispatcher for triage. Reassign in one click and keep a full assignment history.",
   },
   {
     icon: Users,
     title: "Teams & taskers",
-    body: "Taskers build teams, invite collaborators, and share access. Work is documented with reusable, tasker-defined methodologies.",
+    body: "Taskers build teams, invite collaborators, and share access. They document their work with methodologies they write once and reuse.",
   },
   {
     icon: Gauge,
     title: "Plans vs. actuals",
-    body: "Taskers submit a budget and milestones; requestors approve and watch real time and cost track against the plan, live.",
+    body: "Taskers submit a budget and milestones. Once the requestor approves, logged hours and cost are tracked against that plan as the work happens.",
   },
   {
     icon: ShieldCheck,
@@ -41,17 +41,17 @@ const features = [
   {
     icon: Wallet,
     title: "Billing & payouts",
-    body: "Usage-based subscriptions for requestors, hourly or fixed compensation for taskers, and an automatic platform commission split.",
+    body: "Requestors pay a monthly plan by usage. Taskers are paid hourly or a fixed price, and the platform commission comes off each payout automatically.",
   },
   {
     icon: Lock,
-    title: "Locked-down files",
-    body: "Uploads are never public. Access is brokered per request — only admins, the assigned tasker, and authorised team members can read them.",
+    title: "Private files",
+    body: "Uploads are never public. Every download is checked: only admins, the assigned tasker, and permitted team members can open a file.",
   },
   {
     icon: Boxes,
-    title: "No vendor lock-in",
-    body: "PostgreSQL, the S3 API, and self-hosted auth. Run it on Vercel, or docker-compose up on your own box. Your data stays yours.",
+    title: "Self-hostable stack",
+    body: "Built on PostgreSQL, S3-compatible storage, and self-hosted auth. Deploy to Vercel, or run docker-compose up on your own server.",
   },
 ];
 
@@ -59,7 +59,7 @@ const steps = [
   {
     role: "Requestor",
     title: "Submit a request",
-    body: "Pick a task type, fill in the brief, and upload supporting files. Standalone or on behalf of your organisation.",
+    body: "Pick a task type, fill in the brief, and upload supporting files, for yourself or on behalf of your organisation.",
   },
   {
     role: "Dispatcher",
@@ -73,8 +73,8 @@ const steps = [
   },
   {
     role: "QC + Requestor",
-    title: "Review & deliver",
-    body: "QC scores the work, escalates for a second opinion if needed, then releases the approved output to the requestor.",
+    title: "Review & release",
+    body: "QC scores the work, asks for a second opinion when needed, and releases the approved deliverables to the requestor.",
   },
 ];
 
@@ -101,10 +101,10 @@ export default function HomePage() {
               Turn incoming requests into delivered work.
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-white/70">
-              TaskFlow collects task requests from your subscribers, routes them
-              to the right people, tracks delivery against budget, runs quality
-              control, and pays everyone — all on open infrastructure you fully
-              control.
+              TaskFlow takes requests from your subscribers, routes each one to
+              the right tasker, tracks the work against its budget, and reviews
+              it before delivery. Payouts and commission are calculated for you.
+              Use the hosted platform or run it on your own servers.
             </p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
               <Link href="/register" className="btn-primary btn-lg">
@@ -154,7 +154,7 @@ export default function HomePage() {
               One pipeline, four hand-offs
             </h2>
             <p className="mt-4 text-pretty text-muted">
-              Every step tracked and auditable.
+              Each hand-off goes into the audit log, so you can see who did what and when.
             </p>
           </div>
           <div className="mt-14 grid gap-3 md:grid-cols-4">
@@ -182,11 +182,11 @@ export default function HomePage() {
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow-tag bg-white">Features</span>
             <h2 className="heading-display mt-5 text-balance text-4xl leading-[1.14] sm:text-5xl">
-              Everything the operation needs
+              From intake to payout
             </h2>
             <p className="mt-4 text-pretty text-muted">
-              From intake to payout, with governance for organisations and
-              privacy for every uploaded file.
+              Organisations decide what their members can see, and every
+              uploaded file stays private.
             </p>
           </div>
           <div className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -215,8 +215,8 @@ export default function HomePage() {
               Three interfaces, one platform
             </h2>
             <p className="mt-4 text-muted">
-              Each role gets a workspace built for the job — and entity members
-              only ever see what their organisation permits.
+              Each role gets its own workspace. Members of an organisation see
+              only what that organisation allows.
             </p>
             <ul className="mt-6 space-y-4">
               {[
@@ -272,15 +272,15 @@ export default function HomePage() {
         <div className="relative flex flex-col items-center justify-between gap-6 overflow-hidden rounded-[32px] bg-[linear-gradient(160deg,#3730a3_0%,#1e1b4b_55%,#0a0a1f_100%)] px-8 py-14 text-center sm:flex-row sm:px-14 sm:text-left">
           <div>
             <h2 className="heading-display text-balance text-4xl leading-[1.14] text-white">
-              Ready to run your task operation?
+              Send your first request through TaskFlow
             </h2>
             <p className="mt-3 text-lg text-white/60">
-              Spin it up in minutes, or self-host with one command.
+              The free plan includes 3 tasks a month. Self-hosting starts with docker-compose up.
             </p>
           </div>
           <div className="flex flex-none gap-3">
             <Link href="/register" className="btn-primary btn-lg">
-              Get started <ArrowRight className="h-4 w-4" />
+              Create free account <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/docs/self-hosting"

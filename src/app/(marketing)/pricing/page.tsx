@@ -15,11 +15,12 @@ export default function PricingPage() {
   return (
     <div className="container-px py-16">
       <div className="mx-auto max-w-2xl text-center">
-        <h1 className="text-4xl font-medium">Simple, usage-based pricing</h1>
+        <h1 className="text-4xl font-medium">Pay for the tasks you use</h1>
         <p className="mt-4 text-gray-600">
-          Requestors subscribe and pay for the volume they use. Taskers earn per
-          task — hourly or fixed — and the platform takes a transparent
-          commission. Self-host to remove platform fees entirely.
+          Each plan includes a set number of tasks a month, with a flat fee for
+          each task beyond that. Taskers are paid hourly or a fixed price per
+          task, and the platform keeps a commission. Self-host to remove
+          platform fees.
         </p>
       </div>
 
@@ -65,7 +66,7 @@ export default function PricingPage() {
                 href={tier === "ENTERPRISE" ? "/docs/self-hosting" : "/register"}
                 className={`mt-6 ${highlighted ? "btn-primary" : "btn-secondary"}`}
               >
-                {tier === "ENTERPRISE" ? "Talk to us" : "Get started"}
+                {tier === "ENTERPRISE" ? "Read the self-hosting guide" : `Start on ${plan.name}`}
               </Link>
             </div>
           );
@@ -77,10 +78,10 @@ export default function PricingPage() {
         <p className="mt-3 text-sm text-gray-600">
           When a tasker&apos;s plan is approved, the agreed price (hourly ×
           tracked time, or a fixed amount) becomes the gross payout. The
-          platform deducts a commission (15% by default, fully configurable),
-          and the remainder is the tasker&apos;s net earning. Every split is
-          recorded as an auditable payout, settleable through Stripe Connect or
-          your own process.
+          platform deducts its commission (15% by default; operators can change
+          it), and the tasker keeps the rest. Each split is recorded as a
+          payout you can audit, and you can settle it through Stripe Connect
+          or your own process.
         </p>
       </div>
     </div>
