@@ -16,11 +16,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "TaskFlow · Managed task marketplace",
+    default: "TaskFlow · Expert human data for AI",
     template: "%s · TaskFlow",
   },
   description:
-    "Take task requests, route them to the right taskers, track work against budget, review it before delivery, and pay out. Hosted or self-hosted.",
+    "Run SFT, preference, eval, and safety data projects with domain experts. Versioned rubrics, annotator agreement, layered review, and gated dataset releases. Hosted or self-hosted.",
 };
 
 export default function RootLayout({

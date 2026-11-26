@@ -8,73 +8,73 @@ import {
   Gauge,
   Wallet,
   Lock,
-  Boxes,
+  Activity,
   CheckCircle2,
 } from "lucide-react";
 
 const features = [
   {
     icon: ClipboardList,
-    title: "Configurable intake",
-    body: "Give each task type its own form. Choose the required and optional fields: text, dates, dropdowns, and file uploads.",
-  },
-  {
-    icon: GitBranch,
-    title: "Skill-based routing",
-    body: "Auto-assign by skill and level, or send to a dispatcher for triage. Reassign in one click and keep a full assignment history.",
+    title: "Versioned rubrics",
+    body: "Write the data contract once: use case, unit of work, output schema, grading rubric, domain rules, and edge cases. Publish a new version when the rules change.",
   },
   {
     icon: Users,
-    title: "Teams & taskers",
-    body: "Taskers build teams, invite collaborators, and share access. They document their work with methodologies they write once and reuse.",
+    title: "K-way annotation",
+    body: "Send each item to K experts. TaskFlow scores their agreement and auto-accepts items above the threshold you set.",
   },
   {
     icon: Gauge,
-    title: "Plans vs. actuals",
-    body: "Taskers submit a budget and milestones. Once the requestor approves, logged hours and cost are tracked against that plan as the work happens.",
+    title: "Gold items",
+    body: "Mix items with known answers into a batch to certify annotators during the pilot and catch drift in production.",
   },
   {
     icon: ShieldCheck,
-    title: "Quality control",
-    body: "Every deliverable runs through QC with scoring, revisions, and an optional second-opinion reviewer before it reaches the requestor.",
+    title: "Layered review",
+    body: "Review, second opinion, QA audit, and adjudication. Every rejection carries a defect code, such as factual error, safety miss, or hallucinated citation.",
+  },
+  {
+    icon: GitBranch,
+    title: "Release gates",
+    body: "Schema checks, critical-defect rate, review completion, and client acceptance. A batch ships as a versioned release with a dataset card only when every gate passes.",
+  },
+  {
+    icon: Activity,
+    title: "Model-impact loop",
+    body: "Record eval runs against each release and gate the next one on measured lift. Track cost per accepted item, so rework shows up in the numbers.",
   },
   {
     icon: Wallet,
-    title: "Billing & payouts",
-    body: "Requestors pay a monthly plan by usage. Taskers are paid hourly or a fixed price, and the platform commission comes off each payout automatically.",
+    title: "Expert workforce",
+    body: "Taskers are profiled by skill and level and can work in teams. They are paid per hour or per task, with the platform commission deducted automatically.",
   },
   {
     icon: Lock,
-    title: "Private files",
-    body: "Uploads are never public. Every download is checked: only admins, the assigned tasker, and permitted team members can open a file.",
-  },
-  {
-    icon: Boxes,
-    title: "Self-hostable stack",
-    body: "Built on PostgreSQL, S3-compatible storage, and self-hosted auth. Deploy to Vercel, or run docker-compose up on your own server.",
+    title: "Private and self-hostable",
+    body: "No file sits at a public URL, and every download is checked against access rules. Runs on PostgreSQL and S3-compatible storage, on Vercel or your own servers.",
   },
 ];
 
 const steps = [
   {
-    role: "Requestor",
-    title: "Submit a request",
-    body: "Pick a task type, fill in the brief, and upload supporting files, for yourself or on behalf of your organisation.",
+    role: "Client",
+    title: "Define the data",
+    body: "Set the use case, output schema, rubric, and edge cases. Every item is judged against a specific rubric version.",
   },
   {
-    role: "Dispatcher",
-    title: "Triage & assign",
-    body: "Review the queue, match work to the right tasker or team by skill and level, and set the budget guardrails.",
+    role: "Operations",
+    title: "Pilot & calibrate",
+    body: "Run a pilot batch with gold items and check agreement, then move to production with K annotators per item and an audit sample rate.",
   },
   {
-    role: "Tasker",
-    title: "Plan & deliver",
-    body: "Propose a budget, log time against it, document the work, and submit deliverables for quality control.",
+    role: "Experts",
+    title: "Annotate & review",
+    body: "Domain experts work item by item. High-agreement items are accepted; the rest go to review, QA audit, and adjudication.",
   },
   {
-    role: "QC + Requestor",
-    title: "Review & release",
-    body: "QC scores the work, asks for a second opinion when needed, and releases the approved deliverables to the requestor.",
+    role: "Client",
+    title: "Accept the release",
+    body: "Each release lists its gate results and dataset card. Accept it, then record eval results to see what the data did for your model.",
   },
 ];
 
@@ -95,16 +95,17 @@ export default function HomePage() {
           <div className="mx-auto max-w-3xl text-center">
             <span className="eyebrow inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/60 px-3 py-1 text-ink backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-brand-600" />
-              Managed task marketplace · self-hostable
+              Human data for AI · self-hostable
             </span>
             <h1 className="mt-7 text-balance text-5xl leading-[1.08] text-white sm:text-[74px]">
-              Turn incoming requests into delivered work.
+              Expert training data, released only when it passes.
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-white/70">
-              TaskFlow takes requests from your subscribers, routes each one to
-              the right tasker, tracks the work against its budget, and reviews
-              it before delivery. Payouts and commission are calculated for you.
-              Use the hosted platform or run it on your own servers.
+              TaskFlow runs SFT, preference, eval, and safety data projects with
+              domain experts. Set a versioned rubric, send each item to several
+              annotators, and measure how often they agree. Each batch ships as a
+              versioned release once its quality gates pass, and every item
+              records who labelled it, who reviewed it, and which rubric applied.
             </p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
               <Link href="/register" className="btn-primary btn-lg">
@@ -124,9 +125,9 @@ export default function HomePage() {
 
           <div className="mx-auto mt-16 grid max-w-4xl divide-y divide-white/10 rounded-[20px] border border-white/10 bg-white/[0.04] backdrop-blur sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {[
-              [ClipboardList, "Intake", "Structured briefs per task type"],
-              [ShieldCheck, "Quality control", "Scored reviews before delivery"],
-              [Wallet, "Payouts", "Commission split automatically"],
+              [ClipboardList, "Rubrics", "A versioned data contract per batch"],
+              [Users, "Agreement", "K annotators per item, scored for consensus"],
+              [GitBranch, "Release gates", "Nothing ships until every gate passes"],
             ].map(([Icon, title, body]) => {
               const I = Icon as typeof ClipboardList;
               return (
@@ -151,10 +152,11 @@ export default function HomePage() {
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow-tag">How it works</span>
             <h2 className="heading-display mt-5 text-balance text-4xl leading-[1.14] sm:text-5xl">
-              One pipeline, four hand-offs
+              From rubric to release
             </h2>
             <p className="mt-4 text-pretty text-muted">
-              Each hand-off goes into the audit log, so you can see who did what and when.
+              Each hand-off goes into the audit log, so any item can be traced to
+              its annotators, reviewers, and rubric version.
             </p>
           </div>
           <div className="mt-14 grid gap-3 md:grid-cols-4">
@@ -182,11 +184,11 @@ export default function HomePage() {
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow-tag bg-white">Features</span>
             <h2 className="heading-display mt-5 text-balance text-4xl leading-[1.14] sm:text-5xl">
-              From intake to payout
+              Quality you can measure
             </h2>
             <p className="mt-4 text-pretty text-muted">
-              Organisations decide what their members can see, and every
-              uploaded file stays private.
+              Quality is tracked per item, per annotator, per reviewer, and per
+              batch, from the first pilot to the last release.
             </p>
           </div>
           <div className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -212,17 +214,17 @@ export default function HomePage() {
           <div>
             <span className="eyebrow-tag">Roles</span>
             <h2 className="heading-display mt-5 text-balance text-4xl leading-[1.14] sm:text-5xl">
-              Three interfaces, one platform
+              Three workspaces, one dataset
             </h2>
             <p className="mt-4 text-muted">
-              Each role gets its own workspace. Members of an organisation see
-              only what that organisation allows.
+              Each role gets its own workspace. Members of a client organisation
+              see only what that organisation allows.
             </p>
             <ul className="mt-6 space-y-4">
               {[
-                ["Requestors", "Submit and track tasks, approve budgets, download approved deliverables."],
-                ["Taskers", "Claim work, build teams, plan budgets, log time, document with methodologies, and submit for QC."],
-                ["Dispatchers / Admins", "Oversee the pipeline, assign and reassign, configure task types, run QC and second opinions, and manage payouts."],
+                ["Clients", "AI teams that need data. Track batches, review gate results and dataset cards, and accept releases. Commission one-off expert projects with a budget and milestones."],
+                ["Experts", "Domain specialists such as lawyers, researchers, and designers. Annotate items, claim project work, log time, document methods, and track earnings."],
+                ["Operations", "The team running the work. Design batches and rubrics, calibrate annotators, run QA and adjudication, cut releases, and pay experts."],
               ].map(([t, d]) => (
                 <li key={t} className="flex gap-3">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 flex-none text-brand-600" />
@@ -241,14 +243,14 @@ export default function HomePage() {
                 <span className="h-2.5 w-2.5 rounded-full bg-[#febc20]" />
                 <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
               </span>
-              <span className="font-mono text-xs text-muted">Pipeline overview</span>
+              <span className="font-mono text-xs text-muted">Batch overview</span>
             </div>
             <div className="space-y-3 p-5">
               {[
-                ["TF-9X2 · Quarterly market report", "QC in review", "bg-teal-100 text-teal-800"],
-                ["TF-7KP · Logo redesign", "In progress", "bg-amber-100 text-amber-800"],
-                ["TF-4MZ · Contract review", "Assigned", "bg-violet-100 text-violet-700"],
-                ["TF-2QD · Data cleanup", "Delivered", "bg-green-100 text-green-800"],
+                ["BX-1024 · Contract clause preferences", "Calibration", "bg-violet-100 text-violet-700"],
+                ["BX-0987 · Finance SFT prompts", "In review", "bg-amber-100 text-amber-800"],
+                ["BX-0951 · Safety red-team ratings", "QA audit", "bg-teal-100 text-teal-800"],
+                ["BX-0902 · Citation checks", "Released", "bg-green-100 text-green-800"],
               ].map(([title, status, tone]) => (
                 <div
                   key={title}
@@ -272,10 +274,10 @@ export default function HomePage() {
         <div className="relative flex flex-col items-center justify-between gap-6 overflow-hidden rounded-[32px] bg-[linear-gradient(160deg,#3730a3_0%,#1e1b4b_55%,#0a0a1f_100%)] px-8 py-14 text-center sm:flex-row sm:px-14 sm:text-left">
           <div>
             <h2 className="heading-display text-balance text-4xl leading-[1.14] text-white">
-              Send your first request through TaskFlow
+              Run your first pilot batch
             </h2>
             <p className="mt-3 text-lg text-white/60">
-              The free plan includes 3 tasks a month. Self-hosting starts with docker-compose up.
+              The free plan includes 3 tasks a month. To self-host, run docker-compose up.
             </p>
           </div>
           <div className="flex flex-none gap-3">

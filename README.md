@@ -1,9 +1,13 @@
 # TaskFlow
 
-A managed **task-marketplace platform**. It collects task requests from
-subscribers, routes them to the right people, tracks delivery against budget,
-runs quality control, and pays everyone — on open infrastructure you can
-self-host with **no vendor lock-in**.
+A platform for producing **expert human data for AI**: SFT, preference, eval,
+and safety data. Clients define a versioned rubric, domain experts annotate
+each item (K times when agreement matters), reviewers audit and adjudicate, and
+each batch ships as a gated, versioned release. It sits on a managed
+expert-work marketplace (briefs, budgets, QC, payouts) and runs on open
+infrastructure you can self-host with **no vendor lock-in**.
+
+See [`docs/data-production.md`](docs/data-production.md) for the data-plane design.
 
 > Next.js 15 · TypeScript · PostgreSQL + Prisma · Auth.js · S3-compatible
 > storage · pluggable payments.
